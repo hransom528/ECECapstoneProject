@@ -1,29 +1,61 @@
-# LoRA Transceiver Code for Raspberry Pi
-# See: https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts/circuitpython-for-rfm9x-lora
-
-# Imports
+import time
 import board
 import busio
 import digitalio
 import adafruit_rfm9x
 
-# Setup SPI interface
+# --- Setup SPI Interface and LoRa Pins ---
+# Define the SPI bus using the Raspberry Pi's SPI pins
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.D5)
-reset = digitalio.DigitalInOut(board.D6)
+cs = digitalio.DigitalInOut(board.D5)    # Chip Select pin for the LoRa radio
+reset = digitalio.DigitalInOut(board.D6) # Reset pin for the LoRa radio
 
-# Setup radio connection over SPI
-# Note that the radio is configured in LoRa mode so you can't control sync
-# word, encryption, frequency deviation, or other settings!
-RADIO_FREQ_MHZ = 915.0
-BAUD_RATE = 19_200
+# --- Configure the LoRa Radio ---
+RADIO_FREQ_MHZ = 915.0  # Frequency (915 MHz is typical for the US; use 868 for some other regions)
+BAUD_RATE = 19_200      # SPI baud rate for communication
+
+# Create the RFM9x object for the LoRa transceiver
 rfm9x = adafruit_rfm9x.RFM9x(spi, cs, reset, RADIO_FREQ_MHZ, baudrate=BAUD_RATE)
-rfm9x.tx_power = 13 # dB
+rfm9x.tx_power = 13     # Set the transmit power (dB)
 
-# Function to send a packet over LoRA
-def send_packet():
-	pass
+print("Rover LoRa transceiver is ready.")
+print("Waiting for commands...")
 
-def receive_packet():
-	pass
+# --- Command Processing Function ---
+def process_command(command):
+    """
+    Process incoming commands and return a response string.
+    Extend this function to perform real actions on your rover.
+    """
+    if command == "ping":
+        return "pong"
+    elif command == "status":
+        # Return a status message (replace with real sensor/diagnostic info)
+        return "All systems operational"
+    elif command.startswith("move"):
+        # For example, 'move forward', 'move backward', etc.
+        return f"Executing command: {command}"
+    else:
+        return f"Unknown command: {command}"
 
+# --- Main Loop ---
+while True:
+    # Listen for incoming LoRa packets (non-blocking, short timeout)
+    packet = rfm9x.receive(timeout=0.1)
+    if packet is not None:
+        try:
+            # Decode the packet into a UTF-8 string and strip any extra whitespace
+            command = packet.decode("utf-8").strip()
+        except Exception as e:
+            command = packet  # fallback if decoding fails
+        print("Received command:", command)
+        
+        # Process the command and generate a response
+        response = process_command(command)
+        print("Response:", response)
+        
+        # Send the response back to the base station over LoRa
+        rfm9x.send(bytes(response, "utf-8"))
+    
+    # Small delay to prevent maxing out the CPU
+    time.sleep(0.1)
