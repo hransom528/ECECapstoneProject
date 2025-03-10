@@ -10,7 +10,7 @@ from adafruit_motorkit import MotorKit
 
 kit = MotorKit(i2c=board.I2C())
 
-speed = 0.3 
+speed = 1
 
 print("Use W/A/S/D to control the motors. Press 'q' to quit.")
 
