@@ -3,6 +3,7 @@ import board
 import busio
 import digitalio
 import adafruit_rfm9x
+import subprocess
 
 # --- Setup SPI Interface and LoRa Pins ---
 # Define the SPI bus using the Raspberry Pi's SPI pins
@@ -28,7 +29,7 @@ def process_command(command):
     Extend this function to perform real actions on your rover.
     """
     if command == "ping":
-        return "pong"
+        return ping()
     elif command == "status":
         # Return a status message (replace with real sensor/diagnostic info)
         return "All systems operational"
@@ -37,6 +38,30 @@ def process_command(command):
         return f"Executing command: {command}"
     else:
         return f"Unknown command: {command}"
+
+def ping():
+    try:
+        # Send one ping (-c 1) to 8.8.8.8 with a timeout of 5 seconds
+        result = subprocess.run(
+            ["ping", "-c", "1", "8.8.8.8"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            # Split the output into individual lines
+            output_lines = result.stdout.splitlines()
+            # Look for a line containing 'time='
+            for line in output_lines:
+                if "time=" in line:
+                    # Return the line containing the ping round-trip time
+                    return "Ping successful: " + line
+            # Fallback if the expected line wasn't found
+            return "Ping successful, but specific timing info not found."
+        else:
+            return "WiFi appears down: Ping failed. " + result.stderr.strip()
+    except Exception as e:
+        return "Error during ping: " + str(e)
 
 # --- Main Loop ---
 while True:
