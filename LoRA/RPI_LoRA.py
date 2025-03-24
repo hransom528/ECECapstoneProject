@@ -7,8 +7,8 @@ import adafruit_rfm9x
 # --- Setup SPI Interface and LoRa Pins ---
 # Define the SPI bus using the Raspberry Pi's SPI pins
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.D5)    # Chip Select pin for the LoRa radio
-reset = digitalio.DigitalInOut(board.D6) # Reset pin for the LoRa radio
+cs = digitalio.DigitalInOut(board.CE1)    # Chip Select pin for the LoRa radio
+reset = digitalio.DigitalInOut(board.D25) # Reset pin for the LoRa radio
 
 # --- Configure the LoRa Radio ---
 RADIO_FREQ_MHZ = 915.0  # Frequency (915 MHz is typical for the US; use 868 for some other regions)

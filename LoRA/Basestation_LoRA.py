@@ -8,8 +8,8 @@ import sys
 
 # --- Setup SPI Interface and LoRa pins ---
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.D5)      # Chip Select pin for LoRa radio
-reset = digitalio.DigitalInOut(board.D6)   # Reset pin for LoRa radio
+cs = digitalio.DigitalInOut(board.RFM_CS)      # Chip Select pin for LoRa radio
+reset = digitalio.DigitalInOut(board.RFM_RST)   # Reset pin for LoRa radio
 
 # --- Configure the LoRa radio ---
 RADIO_FREQ_MHZ = 915.0      # Frequency (915 MHz is common in the US)
