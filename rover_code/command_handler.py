@@ -1,4 +1,5 @@
 import os
+from network_tests import ping_host, check_dns, check_internet_connectivity
 
 VALID_COMMANDS = {"MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP"}
 
@@ -41,6 +42,31 @@ def handle_command(command, args, rfm9x):
             print(response)
             rfm9x.send(bytes(response, "utf-8"))
             return
+        
+        elif command == "PING":
+            target = args[0] if len(args) > 0 else "8.8.8.8"
+            response = ping_host(host=target)
+            # print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
+
+        elif command == "DNS":
+            domain = args[0] if len(args) > 0 else "google.com"
+            response = check_dns(domain=domain)
+            # print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
+
+        elif command == "NET":
+            response = check_internet_connectivity()
+            # print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
+        
+        elif command == "HELP":
+            response = str(VALID_COMMANDS)
+            # print(response)
+            rfm9x.send(bytes(response, "utf-8"))
 
         else:
             response = f"[UNIMPLEMENTED COMMAND] {command}"
