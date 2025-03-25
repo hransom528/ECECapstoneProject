@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
 
-MAX_PACKET_SIZE = 64  # Maximum LoRa packet size
+MAX_PACKET_SIZE = 128  # Maximum LoRa packet size
 MAX_HISTORY = 50       # Number of sent packets to retain in memory
 
 VALID_COMMANDS = {
@@ -24,7 +24,7 @@ def send_response(response, rfm9x):
     total = len(chunks)
 
     for idx, chunk in enumerate(chunks, start=1):
-        prefix = f"[{timestamp}] [{idx}/{total}] "
+        prefix = f"[{timestamp} {idx}/{total}] "
         payload = prefix.encode('utf-8') + chunk
 
         # Send and store the payload in history
