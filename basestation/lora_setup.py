@@ -11,8 +11,8 @@ def get_lora_radio():
     """Initialize and return the LoRa radio transceiver."""
     # Setup SPI and LoRa pins (adjust these as necessary for your wiring)
     spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-    cs = digitalio.DigitalInOut(board.CE1)    # Chip select pin for LoRa radio
-    reset = digitalio.DigitalInOut(board.D25)   # Reset pin for LoRa radio
+    cs = digitalio.DigitalInOut(board.RFM_CS)    # Chip select pin for LoRa radio
+    reset = digitalio.DigitalInOut(board.RFM_RST)   # Reset pin for LoRa radio
     
     # Create and configure the LoRa radio object
     rfm9x = adafruit_rfm9x.RFM9x(spi, cs, reset, RADIO_FREQ_MHZ, baudrate=BAUD_RATE)
