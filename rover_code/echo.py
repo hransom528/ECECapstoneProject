@@ -14,8 +14,8 @@ LOOP_SLEEP = 0.001        # Sleep duration (seconds) in main loop to yield CPU c
 
 # --- Setup SPI Interface and LoRa pins ---
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.RFM_CS)      # Chip Select pin for LoRa radio
-reset = digitalio.DigitalInOut(board.RFM_RST)    # Reset pin for LoRa radio
+cs = digitalio.DigitalInOut(board.CE1)
+reset = digitalio.DigitalInOut(board.D25)
 
 # --- Configure the LoRa radio ---
 RADIO_FREQ_MHZ = 915.0      # Frequency (915 MHz is common in the US)
