@@ -21,23 +21,40 @@ def handle_command(command, args, rfm9x):
         if command == "MOVE":
             direction = args[0].upper() if len(args) > 0 else "UNKNOWN"
             distance = int(args[1]) if len(args) > 1 else 0
-            print(f"→ Moving {direction} for {distance} units")
+            response = f"→ Moving {direction} for {distance} units"
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
 
         elif command == "LED":
             state = args[0].upper() if len(args) > 0 else "OFF"
-            print(f"→ Turning LED {state}")
+            response = f"→ Turning LED {state}"
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
 
         elif command == "STATUS":
-            print("→ Rover is online and ready")
+            response = "→ Rover is online and ready"
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
 
         elif command == "SCAN":
-            print("→ Scanning environment...")
+            response = "→ Scanning environment..."
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
 
         elif command == "STOP":
-            print("→ Stopping all activity")
+            response = "→ Stopping all activity"
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
+            return
 
         else:
-            print(f"[UNIMPLEMENTED COMMAND] {command}")
+            response = f"[UNIMPLEMENTED COMMAND] {command}"
+            print(response)
+            rfm9x.send(bytes(response, "utf-8"))
 
     except Exception as e:
         print(f"[ERROR] Command handling failed: {e}")
