@@ -4,7 +4,7 @@ from lora_setup import get_lora_radio
 # Configuration parameters for the network test
 PACKET_SIZES = [64, 128, 200]   # Valid packet sizes in bytes
 packet_size_index = 2      # Using the first packet size for this example
-TEST_DURATION = 30         # Duration of the test in seconds
+TEST_DURATION = 10         # Duration of the test in seconds
 PING_INTERVAL = 0.5        # Time between pings (seconds)
 TIMEOUT = 2.0              # Timeout waiting for response (seconds)
 
