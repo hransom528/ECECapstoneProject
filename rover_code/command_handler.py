@@ -1,5 +1,3 @@
-# command_handler.py
-
 import os
 
 # Load valid commands from file (once)
