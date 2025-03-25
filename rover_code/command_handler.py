@@ -14,7 +14,7 @@ VALID_COMMANDS = load_valid_commands()
 def is_valid_command(command):
     return command.upper() in VALID_COMMANDS
 
-def handle_command(command, args):
+def handle_command(command, args, rfm9x):
     try:
         command = command.upper()
 
