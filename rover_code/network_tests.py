@@ -1,6 +1,6 @@
 import subprocess
 
-def ping_host(host="8.8.8.8", count=1, timeout=1, max_output_len=250):
+def ping_host(host="8.8.8.8", count=1, timeout=1, max_output_len=64):
     """Ping a host and return the output (truncated to fit LoRa limits)."""
     try:
         result = subprocess.run(
@@ -15,7 +15,7 @@ def ping_host(host="8.8.8.8", count=1, timeout=1, max_output_len=250):
     return output[:max_output_len]
 
 
-def check_dns(domain="google.com", max_output_len=250):
+def check_dns(domain="google.com", max_output_len=64):
     """Do a basic DNS lookup test."""
     try:
         result = subprocess.run(
@@ -30,7 +30,7 @@ def check_dns(domain="google.com", max_output_len=250):
     return output[:max_output_len]
 
 
-def check_internet_connectivity(max_output_len=250):
+def check_internet_connectivity(max_output_len=64):
     """Check if we can reach a known URL using curl (or similar)."""
     try:
         result = subprocess.run(
