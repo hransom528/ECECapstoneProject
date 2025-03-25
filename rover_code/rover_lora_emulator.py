@@ -8,7 +8,7 @@ This code is not what the rover should be running!!
 
 class FakeLoRa:
     def send(self, data):
-        print(f"[SENT] {data.decode('utf-8')}")
+        print(f"[SENT] [{len(data)} bytes]: {data.decode('utf-8')}")
 
 
 def main():
