@@ -1,6 +1,7 @@
 from command_handler import handle_command, is_valid_command
 
 """
+This code emulates the basestation without LoRa hardware. 
 The purpose of this module is to test the rover command system locally
 without using LoRa hardware. You can simulate commands using your keyboard.
 This code is not what the rover should be running!! 
