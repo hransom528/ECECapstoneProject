@@ -33,9 +33,10 @@ while True:
             args = parts[1:]
 
             if is_valid_command(command):
-                handle_command(command, args)
+                handle_command(command, args, rfm9x)
             else:
-                print(f"[IGNORED] Unknown command: {command}")
+                response = f"[IGNORED] Unknown command: {command}"
+                rfm9x.send(bytes(response, "utf-8"))
 
         except Exception as e:
             print(f"[ERROR] Packet processing failed: {e}")
