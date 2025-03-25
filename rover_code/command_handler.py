@@ -6,7 +6,7 @@ MAX_PACKET_SIZE = 64  # Maximum LoRa packet size
 MAX_HISTORY = 50       # Number of sent packets to retain in memory
 
 VALID_COMMANDS = {
-    "MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP", "REQUEST"
+    "MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP", "REQUEST", "OUTPUT_LENGTH"
 }
 
 # In-memory buffer to store sent packets
@@ -101,9 +101,25 @@ def handle_command(command, args, rfm9x):
                 send_response(error_msg, rfm9x)
             return
 
+        elif command == "OUTPUT_LENGTH":
+            try:
+                if len(args) == 0:
+                    raise ValueError("No value provided.")
+
+                new_size = int(args[0])
+                if 32 <= new_size <= 200:
+                    global MAX_PACKET_SIZE 
+                    MAX_PACKET_SIZE = new_size
+                    response = f"Updated output packet length to {new_size} bytes"
+                else:
+                    response = f"Invalid size: {new_size} (must be between 1 and 200)"
+            except Exception as e:
+                response = f"Failed to update packet length: {e}"
+            send_response(response, rfm9x)
+    
         else:
             response = f"[UNIMPLEMENTED COMMAND] {command}"
             send_response(response, rfm9x)
 
     except Exception as e:
-        print(f"[ERROR] Command handling failed: {e}")
+        send_response(f"[ERROR] Command handling failed: {e}", rfm9x)
