@@ -1,7 +1,7 @@
 import subprocess
 
-def ping_host(host="8.8.8.8", count=1, timeout=1, max_output_len=64):
-    """Ping a host and return the output (truncated to fit LoRa limits)."""
+def ping_host(host="8.8.8.8", count=1, timeout=1):
+    """Ping a host and return the output."""
     try:
         result = subprocess.run(
             ["ping", "-c", str(count), "-W", str(timeout), host],
@@ -12,10 +12,10 @@ def ping_host(host="8.8.8.8", count=1, timeout=1, max_output_len=64):
         output = result.stdout.strip()
     except Exception as e:
         output = f"[PING ERROR] {e}"
-    return output[:max_output_len]
+    return output
 
 
-def check_dns(domain="google.com", max_output_len=64):
+def check_dns(domain="google.com"):
     """Do a basic DNS lookup test."""
     try:
         result = subprocess.run(
@@ -27,10 +27,10 @@ def check_dns(domain="google.com", max_output_len=64):
         output = result.stdout.strip()
     except Exception as e:
         output = f"[DNS ERROR] {e}"
-    return output[:max_output_len]
+    return output
 
 
-def check_internet_connectivity(max_output_len=64):
+def check_internet_connectivity():
     """Check if we can reach a known URL using curl (or similar)."""
     try:
         result = subprocess.run(
@@ -42,4 +42,4 @@ def check_internet_connectivity(max_output_len=64):
         output = result.stdout.strip()
     except Exception as e:
         output = f"[CONNECTIVITY ERROR] {e}"
-    return output[:max_output_len]
+    return output
