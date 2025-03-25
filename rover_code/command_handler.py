@@ -1,15 +1,6 @@
 import os
 
-# Load valid commands from file (once)
-def load_valid_commands(path="commands.txt"):
-    try:
-        with open(path, "r") as f:
-            return {line.strip().upper() for line in f if line.strip()}
-    except Exception as e:
-        print(f"[ERROR] Failed to load commands from {path}: {e}")
-        return set()
-
-VALID_COMMANDS = load_valid_commands()
+VALID_COMMANDS = {"MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP"}
 
 def is_valid_command(command):
     return command.upper() in VALID_COMMANDS
