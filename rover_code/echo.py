@@ -30,8 +30,8 @@ while True:
     packet = rfm9x.receive(timeout=RECEIVE_TIMEOUT)
     if packet is not None:
         # Debug: show raw bytes
+        rfm9x.send(packet)
         print("Received packet (raw bytes):", packet)
         # Echo the packet back exactly as received
-        rfm9x.send(packet)
         print("Echoed packet back.")
     time.sleep(LOOP_SLEEP)
