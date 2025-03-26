@@ -34,6 +34,7 @@ def send_response(response, rfm9x):
         # Keep only last MAX_HISTORY items
         if len(packet_history) > MAX_HISTORY:
             packet_history.pop(0)
+            
 def handle_command(command, args, rfm9x):
     try:
         command = command.upper()
@@ -103,6 +104,16 @@ def handle_command(command, args, rfm9x):
                 send_response(error_msg, rfm9x)
             return
 
+        elif command == "ECHO":
+            try:
+                for i in range(int(args[0])):
+                    send_response(args[1], rfm9x)
+            except Exception as e:
+                error_msg = f"[REQUEST ERROR] Invalid argument: {e}"
+                send_response(error_msg, rfm9x)
+            
+            return
+
         elif command == "OUTPUT_LENGTH":
             try:
                 if len(args) == 0:
@@ -118,7 +129,7 @@ def handle_command(command, args, rfm9x):
             except Exception as e:
                 response = f"Failed to update packet length: {e}"
             send_response(response, rfm9x)
-    
+            return
         else:
             response = f"[UNIMPLEMENTED COMMAND] {command}"
             send_response(response, rfm9x)
