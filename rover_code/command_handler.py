@@ -6,7 +6,7 @@ MAX_PACKET_SIZE = 128  # Maximum LoRa packet size
 MAX_HISTORY = 500       # Number of sent packets to retain in memory
 
 VALID_COMMANDS = {
-    "MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP", "REQUEST", "OUTPUT_LENGTH"
+    "MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP", "HISTORY", "OUTPUT_LENGTH", "ECHO"
 }
 
 # In-memory buffer to store sent packets
@@ -34,7 +34,6 @@ def send_response(response, rfm9x):
         # Keep only last MAX_HISTORY items
         if len(packet_history) > MAX_HISTORY:
             packet_history.pop(0)
-
 def handle_command(command, args, rfm9x):
     try:
         command = command.upper()
@@ -89,9 +88,12 @@ def handle_command(command, args, rfm9x):
             send_response(response, rfm9x)
             return
 
-        elif command == "REQUEST":
+        elif command == "HISTORY":
             try:
-                count = int(args[0]) if len(args) > 0 else 1
+                if len(args) == 0:
+                    return send_response("Usage: HISTORY (# of packets)", rfm9x)
+
+                count = int(args[1])
                 to_resend = packet_history[-count:] if count <= len(packet_history) else packet_history
                 send_response(f"→ Resending last {len(to_resend)} packets", rfm9x)
                 for packet in to_resend:
