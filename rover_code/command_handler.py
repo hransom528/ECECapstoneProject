@@ -3,7 +3,7 @@ from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
 
 MAX_PACKET_SIZE = 128  # Maximum LoRa packet size
-MAX_HISTORY = 50       # Number of sent packets to retain in memory
+MAX_HISTORY = 500       # Number of sent packets to retain in memory
 
 VALID_COMMANDS = {
     "MOVE", "LED", "STATUS", "SCAN", "STOP", "PING", "DNS", "NET", "HELP", "REQUEST", "OUTPUT_LENGTH"
