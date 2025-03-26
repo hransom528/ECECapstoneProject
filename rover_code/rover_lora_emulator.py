@@ -1,4 +1,4 @@
-from command_handler import handle_command, is_valid_command
+from command_handler import CommandHandler
 
 """
 This code emulates the basestation without LoRa hardware. 
@@ -16,6 +16,10 @@ def main():
     print("LoRa simulation started. Type commands below (or 'exit' to quit).")
 
     rfm9x = FakeLoRa()
+    # Assuming rfm9x is already defined and configured
+    handler = CommandHandler(rfm9x)
+
+# Dispatch the command using the CommandHandler instance
     
     while True:
         try:
@@ -31,18 +35,20 @@ def main():
             command = parts[0]
             args = parts[1:]
 
-            if is_valid_command(command):
-                handle_command(command, args, rfm9x)
+            # Check if the command is valid using the registered commands
+            if command.upper() in handler.commands:
+                handler.handle_command(command, args)
             else:
                 response = f"[IGNORED] Unknown command: {command}"
                 print(response)
-                rfm9x.send(bytes(response, "utf-8"))
+                rfm9x.send(response.encode("utf-8"))
 
         except KeyboardInterrupt:
             print("\n[CTRL+C] Exiting simulation.")
             break
         except Exception as e:
             print(f"[ERROR] Command processing failed: {e}")
+
 
 
 if __name__ == "__main__":

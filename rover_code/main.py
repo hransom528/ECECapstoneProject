@@ -4,7 +4,7 @@ import busio
 import digitalio
 import adafruit_rfm9x
 from lora_setup import get_lora_radio
-from command_handler import handle_command, is_valid_command
+from command_handler import CommandHandler
 
 '''
 The purpose of this module is to communicate with the basestation. This is what should be running at all times on the rover. 
@@ -15,6 +15,7 @@ RECEIVE_TIMEOUT = 2.0   # Timeout (seconds) for rfm9x.receive() to wait for a pa
 LOOP_SLEEP = 0.001        # Sleep duration (seconds) in main loop to yield CPU control
 
 rfm9x = get_lora_radio()
+handler = CommandHandler(rfm9x)
 
 print("LoRa transceiver is initialized. Ready to receive commands!")
 
@@ -32,8 +33,9 @@ while True:
             command = parts[0]
             args = parts[1:]
 
-            if is_valid_command(command):
-                handle_command(command, args, rfm9x)
+            # Check if the command is valid using the registered commands
+            if command.upper() in handler.commands:
+                handler.handle_command(command, args)
             else:
                 response = f"[IGNORED] Unknown command: {command}"
                 rfm9x.send(bytes(response, "utf-8"))
