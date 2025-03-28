@@ -127,29 +127,42 @@ class ConfigCommand(Command):
 
     def execute(self, args, handler):
         try:
-            if len(args) < 2:
+            if len(args) == 1 and args[0].upper() == "HELP":
+                response = (
+                    "CONFIG OPTIONS:\n"
+                    "- OUTPUT_LENGTH <32-252>\n"
+                    "- LOGGING <true|false>\n"
+                    "- TIMESTAMP <true|false>\n"
+                    "- CHUNKING <true|false>"
+                )
+            elif len(args) < 2:
                 raise ValueError("Usage: CONFIG <PARAM> <VALUE>")
 
-            param, value = args[0].upper(), args[1]
-
-            if param == "OUTPUT_LENGTH":
-                new_size = int(value)
-                if 32 <= new_size <= 252:
-                    handler.max_packet_size = new_size
-                    response = f"Set OUTPUT_LENGTH to {new_size} bytes"
-                else:
-                    response = f"Invalid OUTPUT_LENGTH: {new_size} (must be 32-252)"
-            elif param == "LOGGING":
-                if value.lower() in ["true", "1", "on"]:
-                    handler.logging_enabled = True
-                    response = "Enabled LOGGING"
-                elif value.lower() in ["false", "0", "off"]:
-                    handler.logging_enabled = False
-                    response = "Disabled LOGGING"
-                else:
-                    response = f"Invalid LOGGING value: {value} (must be true/false)"
             else:
-                response = f"Unknown CONFIG parameter: {param}"
+                param, value = args[0].upper(), args[1].lower()
+
+                if param == "OUTPUT_LENGTH":
+                    new_size = int(value)
+                    if 32 <= new_size <= 252:
+                        handler.max_packet_size = new_size
+                        response = f"Set OUTPUT_LENGTH to {new_size} bytes"
+                    else:
+                        response = f"Invalid OUTPUT_LENGTH: {new_size} (must be 32-252)"
+
+                elif param == "LOGGING":
+                    handler.logging_enabled = value in ["true", "1", "on"]
+                    response = f"{'Enabled' if handler.logging_enabled else 'Disabled'} LOGGING"
+
+                elif param == "TIMESTAMP":
+                    handler.timestamp_enabled = value in ["true", "1", "on"]
+                    response = f"{'Enabled' if handler.timestamp_enabled else 'Disabled'} TIMESTAMP"
+
+                elif param == "CHUNKING":
+                    handler.chunking_enabled = value in ["true", "1", "on"]
+                    response = f"{'Enabled' if handler.chunking_enabled else 'Disabled'} CHUNKING"
+
+                else:
+                    response = f"Unknown CONFIG parameter: {param}"
 
         except Exception as e:
             response = f"CONFIG error: {e}"
@@ -162,6 +175,9 @@ class CommandHandler:
         self.rfm9x = rfm9x
         self.packet_history = []
         self.max_packet_size = 128
+        self.logging_enabled = True
+        self.timestamp_enabled = True     # NEW
+        self.chunking_enabled = True      # NEW
         self.commands = {}
         self.register_commands([
             MoveCommand(),
@@ -184,25 +200,36 @@ class CommandHandler:
 
     def send_response(self, response, rfm9x=None):
         rfm9x = rfm9x or self.rfm9x
-        timestamp = datetime.now().strftime("%H:%M:%S")
         encoded_response = response.encode('utf-8')
-        
-        # If logging is disabled, we don't subtract space for prefix
-        prefix_len = 30 if self.logging_enabled else 0
+
+        # Determine if we’re prefixing at all
+        prefix_len = 0
+        if self.logging_enabled and self.timestamp_enabled:
+            prefix_len = 30
+
         max_data_len = self.max_packet_size - prefix_len
 
-        chunks = [
-            encoded_response[i:i + max_data_len]
-            for i in range(0, len(encoded_response), max_data_len)
-        ]
+        # Determine chunking behavior
+        if self.chunking_enabled:
+            chunks = [
+                encoded_response[i:i + max_data_len]
+                for i in range(0, len(encoded_response), max_data_len)
+            ]
+        else:
+            chunks = [encoded_response]  # No chunking
+
         total = len(chunks)
 
         for idx, chunk in enumerate(chunks, start=1):
             if self.logging_enabled:
-                prefix = f"[{timestamp} {idx}/{total}] "
+                if self.timestamp_enabled:
+                    timestamp = datetime.now().strftime("%H:%M:%S")
+                    prefix = f"[{timestamp} {idx}/{total}] "
+                else:
+                    prefix = f"[{idx}/{total}] "
                 payload = prefix.encode('utf-8') + chunk
             else:
-                payload = chunk  # No prefix
+                payload = chunk  # No prefix at all
 
             rfm9x.send(payload)
             self.packet_history.append(payload)
