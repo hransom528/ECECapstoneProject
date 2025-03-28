@@ -176,8 +176,8 @@ class CommandHandler:
         self.packet_history = []
         self.max_packet_size = 128
         self.logging_enabled = True
-        self.timestamp_enabled = True     # NEW
-        self.chunking_enabled = True      # NEW
+        self.timestamp_enabled = True
+        self.chunking_enabled = True
         self.commands = {}
         self.register_commands([
             MoveCommand(),
