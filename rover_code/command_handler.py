@@ -122,21 +122,38 @@ class EchoCommand(Command):
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
 
 
-class OutputLengthCommand(Command):
-    name = "OUTPUT_LENGTH"
+class ConfigCommand(Command):
+    name = "CONFIG"
 
     def execute(self, args, handler):
         try:
-            if len(args) == 0:
-                raise ValueError("No value provided.")
-            new_size = int(args[0])
-            if 32 <= new_size <= 252:
-                handler.max_packet_size = new_size
-                response = f"Updated output packet length to {new_size} bytes"
+            if len(args) < 2:
+                raise ValueError("Usage: CONFIG <PARAM> <VALUE>")
+
+            param, value = args[0].upper(), args[1]
+
+            if param == "OUTPUT_LENGTH":
+                new_size = int(value)
+                if 32 <= new_size <= 252:
+                    handler.max_packet_size = new_size
+                    response = f"Set OUTPUT_LENGTH to {new_size} bytes"
+                else:
+                    response = f"Invalid OUTPUT_LENGTH: {new_size} (must be 32-252)"
+            elif param == "LOGGING":
+                if value.lower() in ["true", "1", "on"]:
+                    handler.logging_enabled = True
+                    response = "Enabled LOGGING"
+                elif value.lower() in ["false", "0", "off"]:
+                    handler.logging_enabled = False
+                    response = "Disabled LOGGING"
+                else:
+                    response = f"Invalid LOGGING value: {value} (must be true/false)"
             else:
-                response = f"Invalid size: {new_size} (must be between 32 and 200)"
+                response = f"Unknown CONFIG parameter: {param}"
+
         except Exception as e:
-            response = f"Failed to update packet length: {e}"
+            response = f"CONFIG error: {e}"
+
         handler.send_response(response)
 
 
@@ -158,7 +175,7 @@ class CommandHandler:
             HelpCommand(),
             HistoryCommand(),
             EchoCommand(),
-            OutputLengthCommand(),
+            ConfigCommand(),
         ])
 
     def register_commands(self, command_list):
@@ -166,11 +183,14 @@ class CommandHandler:
             self.commands[command.name] = command
 
     def send_response(self, response, rfm9x=None):
-        # Use provided rfm9x or default to self.rfm9x
         rfm9x = rfm9x or self.rfm9x
         timestamp = datetime.now().strftime("%H:%M:%S")
         encoded_response = response.encode('utf-8')
-        max_data_len = self.max_packet_size - 30
+        
+        # If logging is disabled, we don't subtract space for prefix
+        prefix_len = 30 if self.logging_enabled else 0
+        max_data_len = self.max_packet_size - prefix_len
+
         chunks = [
             encoded_response[i:i + max_data_len]
             for i in range(0, len(encoded_response), max_data_len)
@@ -178,14 +198,15 @@ class CommandHandler:
         total = len(chunks)
 
         for idx, chunk in enumerate(chunks, start=1):
-            prefix = f"[{timestamp} {idx}/{total}] "
-            payload = prefix.encode('utf-8') + chunk
+            if self.logging_enabled:
+                prefix = f"[{timestamp} {idx}/{total}] "
+                payload = prefix.encode('utf-8') + chunk
+            else:
+                payload = chunk  # No prefix
 
-            # Send payload and store in history
             rfm9x.send(payload)
             self.packet_history.append(payload)
 
-            # Ensure history does not exceed MAX_HISTORY
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
 
