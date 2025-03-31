@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
+from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -16,8 +17,27 @@ class MoveCommand(Command):
 
     def execute(self, args, handler):
         direction = args[0].upper() if len(args) > 0 else "UNKNOWN"
-        distance = int(args[1]) if len(args) > 1 else 0
-        response = f"→ Moving {direction} for {distance} units"
+        response = ""
+        
+        if direction == "W":
+            move_forward()
+            response = "→ Moving forward"
+        elif direction == "S":
+            move_backward()
+            response = "→ Moving backward"
+        elif direction == "A":
+            turn_left()
+            response = "→ Turning left"
+        elif direction == "D":
+            turn_right()
+            response = "→ Turning right"
+        elif direction == "STOP":
+            stop()
+            response = "→ Stopping motors"
+        else:
+            stop()
+            response = f"→ Unknown direction: {direction}"
+
         handler.send_response(response)
 
 
