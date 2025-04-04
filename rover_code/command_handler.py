@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
 from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
@@ -16,21 +17,30 @@ class MoveCommand(Command):
     name = "MOVE"
 
     def execute(self, args, handler):
-        direction = args[0].upper() if len(args) > 0 else "UNKNOWN"
+        if len(args) != 2:
+            handler.send_response("Usage: MOVE <DIRECTION> <DURATION>")
+            return
+
+        direction = args[0].upper()
+        try:
+            duration = float(args[1])
+        except ValueError:
+            handler.send_response("Invalid duration. Provide a number.")
+            return
+
         response = ""
-        
-        if direction == "W":
+        if direction == "FORWARD":
             move_forward()
-            response = "→ Moving forward"
-        elif direction == "S":
+            response = f"→ Moving forward for {duration} seconds"
+        elif direction == "BACKWARD":
             move_backward()
-            response = "→ Moving backward"
-        elif direction == "A":
+            response = f"→ Moving backward for {duration} seconds"
+        elif direction == "LEFT":
             turn_left()
-            response = "→ Turning left"
-        elif direction == "D":
+            response = f"→ Turning left for {duration} seconds"
+        elif direction == "RIGHT":
             turn_right()
-            response = "→ Turning right"
+            response = f"→ Turning right for {duration} seconds"
         elif direction == "STOP":
             stop()
             response = "→ Stopping motors"
@@ -39,6 +49,10 @@ class MoveCommand(Command):
             response = f"→ Unknown direction: {direction}"
 
         handler.send_response(response)
+
+        if direction in ["FORWARD", "BACKWARD", "LEFT", "RIGHT"]:
+            time.sleep(duration)
+            stop()
 
 
 class LedCommand(Command):
