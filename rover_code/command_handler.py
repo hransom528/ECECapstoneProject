@@ -5,6 +5,7 @@ from network_tests import ping_host, check_dns, check_internet_connectivity
 # from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
 from images import load_image_variable_bpp
 import math
+import zlib
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -227,8 +228,8 @@ class ScreenshotCommand(Command):
                 return
             
             # Compress the packed data
-            # compressed = zlib.compress(data)
-            compressed = data
+            compressed = zlib.compress(data)
+            # compressed = data
             total_packets = math.ceil(len(compressed) / handler.max_packet_size)
             
             # Send each packet with a header (2 bytes: sequence number, and 2 bytes: total packet count)
