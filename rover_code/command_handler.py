@@ -247,6 +247,41 @@ class ScreenshotCommand(Command):
             handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
 
 
+class ResendCommand(Command):
+    name = "RESEND"
+    
+    def execute(self, args, handler):
+        """
+        Resends specific packets based on a comma-separated list of packet sequence numbers.
+        Example command: RESEND 0,2,5
+        """
+        if not args:
+            handler.send_response("Usage: RESEND <packet numbers, comma separated>", handler.rfm9x)
+            return
+        try:
+            # Combine all arguments into one string in case spaces are used.
+            indices_str = " ".join(args).replace(":", "").strip()
+            # Split by commas (and spaces) to extract packet indices.
+            indices = []
+            for part in indices_str.split(","):
+                for token in part.split():
+                    token = token.strip()
+                    if token.isdigit():
+                        indices.append(int(token))
+            if not indices:
+                handler.send_response("No valid packet indices provided for RESEND.", handler.rfm9x)
+                return
+            history = handler.packet_history
+            for i in indices:
+                try:
+                    packet = history[i]
+                    handler.rfm9x.send(packet)
+                    print(f"Resent packet {i}")
+                except IndexError:
+                    handler.send_response(f"Packet {i} not found in history.", handler.rfm9x)
+        except Exception as e:
+            handler.send_response(f"[RESEND ERROR] {e}", handler.rfm9x)
+
 class CommandHandler:
     def __init__(self, rfm9x):
         self.rfm9x = rfm9x
@@ -270,7 +305,9 @@ class CommandHandler:
             EchoCommand(),
             ConfigCommand(),
             ScreenshotCommand(),
+            ResendCommand(),  # New RESEND command added here.
         ])
+
 
     def register_commands(self, command_list):
         for command in command_list:
