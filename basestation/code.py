@@ -1,6 +1,7 @@
 import time
 from lora_setup import get_lora_radio
 from network_test import network_test
+from camera import receive_photo
 
 # --- Configuration ---
 LORA_FREQ = 915.0         # MHz (set according to your region)
@@ -32,11 +33,20 @@ def main():
                 except (ValueError, IndexError):
                     print("[ERROR] Usage: NETWORK_TEST <count>")
                 continue
+            
+            # Handle the SCREENSHOT command by delegating to camera.receive_photo()
+            if raw_input_str.startswith("SCREENSHOT"):
+                print("Requesting screenshot from rover...")
+                # Send the SCREENSHOT command as raw bytes so that no conversion occurs.
+                rfm9x.send("SCREENSHOT".encode('utf-8'))
+                # Allow a brief delay for the rover to begin transmitting.
+                time.sleep(0.5)
+                # Receive and reconstruct the photo via the camera module.
+                receive_photo(rfm9x)
+                continue
 
             # Normal message handling
             message = raw_input_str.encode('utf-8')
-            retries = 0
-
             print(f"[TX] Sending ({len(message)} bytes): {raw_input_str}")
             rfm9x.send(message)
 
