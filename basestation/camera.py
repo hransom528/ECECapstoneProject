@@ -1,94 +1,67 @@
-# camera.py
-
 import time
-import zlib
-import math
-from PIL import Image
 
-def receive_photo(rfm9x, size=(128, 128), bit_depth=4):
+def receive_photo(rfm9x):
     """
-    Receives packets containing compressed, bit-packed image data over LoRa,
-    reassembles and decompresses the image, and displays the reconstructed image.
+    Receives packets over LoRa and dumps their raw contents to img.bin.
 
     Each packet is expected to have a 4-byte header:
-      - First 2 bytes: sequence number (big-endian integer)
-      - Next 2 bytes: total number of packets (big-endian integer)
-    
-    The image is reconstructed from the decompressed bit stream based on the 
-    provided size and bit depth. Pixel values are scaled to the full 0-255 range.
-    """
-    # Define timeouts (in seconds)
-    RECEIVE_TIMEOUT = 5.0
-    INTER_PACKET_TIMEOUT = 0.5
+      - First 2 bytes: sequence number (big-endian)
+      - Next 2 bytes: total number of packets (big-endian)
 
-    print("Receiving photo...")
-    
-    screenshot_packets = {}
+    The function reassembles the packets in the correct order
+    and writes the combined binary data to img.bin.
+    """
+    RECEIVE_TIMEOUT = 60.0         # Overall timeout for the complete transmission.
+    INTER_PACKET_TIMEOUT = 2.0     # Timeout for each receive() call.
+    POST_RECEIVE_TIMEOUT = 5.0     # Additional time to wait after the last received packet.
+
+    print("Receiving raw image data...")
+
+    packets = {}
     expected_total = None
     start_time = time.time()
-    last_packet_time = time.time()
-    
-    # Collect packets until timeout or until all expected packets are received.
-    while time.time() - start_time < RECEIVE_TIMEOUT:
+    last_packet_time = None
+
+    while True:
+        current_time = time.time()
+        # If we've received at least one packet and no new packet has arrived within POST_RECEIVE_TIMEOUT, stop waiting.
+        if last_packet_time is not None and (current_time - last_packet_time) > POST_RECEIVE_TIMEOUT:
+            print("No new packet received for a while, ending reception.")
+            break
+
+        # Check if overall timeout has been reached.
+        if (current_time - start_time) > RECEIVE_TIMEOUT:
+            print("Overall receive timeout reached.")
+            break
+
         packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT)
         if packet:
+            last_packet_time = current_time
             if len(packet) < 4:
-                print("Received packet too short, skipping.")
+                print("Received short packet, skipping.")
                 continue
 
-            # Parse header: first 2 bytes = sequence number, next 2 = total packet count.
             seq = int.from_bytes(packet[0:2], "big")
             total = int.from_bytes(packet[2:4], "big")
             if expected_total is None:
                 expected_total = total
                 print(f"Expecting {expected_total} packets.")
-            data_part = packet[4:]
-            screenshot_packets[seq] = data_part
+
+            packets[seq] = packet[4:]
             print(f"Received packet {seq + 1}/{total}")
-            last_packet_time = time.time()
-            if len(screenshot_packets) == expected_total:
-                break
-        else:
-            # If we've received some packets and no new packet comes in a while, break out.
-            if screenshot_packets and (time.time() - last_packet_time > INTER_PACKET_TIMEOUT):
-                break
 
-    if expected_total is None or len(screenshot_packets) != expected_total:
-        print("Failed to receive all packets. Received {}/{} packets.".format(
-            len(screenshot_packets), expected_total if expected_total is not None else 0))
+            if len(packets) == expected_total:
+                print("All packets received.")
+                break
+        # If no packet is received, the loop will check timeouts and try again.
+    
+    if expected_total is None or len(packets) != expected_total:
+        print(f"Incomplete receive: {len(packets)}/{expected_total if expected_total else 0} packets.")
         return
 
-    # Reassemble the complete compressed data in order.
-    compressed = b"".join(screenshot_packets[i] for i in range(expected_total))
-    try:
-        decompressed = zlib.decompress(compressed)
-    except Exception as e:
-        print(f"Decompression failed: {e}")
-        return
+    # Reassemble raw binary data in order and save to disk
+    raw_data = b"".join(packets[i] for i in range(expected_total))
+    with open("img.bin", "wb") as f:
+        f.write(raw_data)
 
-    # Calculate total pixels and set up variables for unpacking the bit stream.
-    total_pixels = size[0] * size[1]
-    max_val = (1 << bit_depth) - 1
-    scale = 255 // max_val
-    pixels = []
-    buffer = 0
-    bits_in_buffer = 0
-
-    # Unpack the bit-packed stream into individual pixel values.
-    for byte in decompressed:
-        buffer = (buffer << 8) | byte
-        bits_in_buffer += 8
-        while bits_in_buffer >= bit_depth and len(pixels) < total_pixels:
-            bits_in_buffer -= bit_depth
-            val = (buffer >> bits_in_buffer) & max_val
-            pixels.append(val * scale)
-        buffer &= (1 << bits_in_buffer) - 1
-
-    if len(pixels) != total_pixels:
-        print("Warning: Expected {} pixels but got {} pixels.".format(total_pixels, len(pixels)))
-
-    # Create and display the grayscale image.
-    img = Image.new("L", size)
-    img.putdata(pixels)
-    img.show()
-    print("Screenshot image displayed.")
+    print("Raw image data saved to img.bin.")
