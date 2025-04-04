@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
-from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
+# from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
