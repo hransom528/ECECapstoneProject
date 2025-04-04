@@ -39,7 +39,7 @@ def main():
                 if packet:
                     try:
                         decoded = packet.decode('utf-8').strip()
-                        print(f"[RECEIVED] {decoded}")
+                        print(f"[RECEIVED] [{len(packet)} bytes]: {decoded}")
                         last_packet_time = time.time()
                         received_any = True
                     except UnicodeDecodeError:

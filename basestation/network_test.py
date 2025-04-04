@@ -1,85 +1,43 @@
 import time
-from lora_setup import get_lora_radio
+INTER_PACKET_TIMEOUT = 0.5  # Max wait between packets (LoRa has ~0.2s delay per packet)
 
-# Configuration parameters for the network test
-PACKET_SIZES = [64, 128, 200]   # Valid packet sizes in bytes
-packet_size_index = 2      # Using the first packet size for this example
-TEST_DURATION = 10         # Duration of the test in seconds
-PING_INTERVAL = 0.5        # Time between pings (seconds)
-TIMEOUT = 2.0              # Timeout waiting for response (seconds)
+def network_test(rfm9x, count):
+    test_message = f"ECHO {count} ABABABABABABABABAIOEEIOJGEIOJGEOIGJOEIJGEOIJGEIOJGEOIJGEOIJGEOIJGEOIJGIOEJGIOEJG"
+    message = test_message.encode('utf-8')
 
-def run_network_test():
-    """Run a combined LoRa network test measuring both latency and throughput."""
-    print(f"\nStarting LoRa network test with packet size {PACKET_SIZES[packet_size_index]} bytes")
+    print(f"[TEST] Sending network test command: {test_message}")
+    rfm9x.send(message)
 
-    # Initialize the LoRa radio transceiver
-    rfm9x = get_lora_radio()
+    print(f"[TEST] Waiting for {count} packets...")
 
-    # Initialize statistics counters
-    sent_packets = 0
+
     received_packets = 0
-    total_latency = 0.0
-    dropped_packets = 0
+    total_bytes = 0
+    start_time = time.time()
+    last_packet_time = time.time()
 
-    start_time = time.monotonic()
+    while received_packets < count:
+        packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT)
+        if packet:
+            try:
+                decoded = packet.decode('utf-8').strip()
+                print(f"[RECEIVED] {decoded}")
+                received_packets += 1
+                total_bytes += len(packet)
+                last_packet_time = time.time()
+            except UnicodeDecodeError:
+                print("[ERROR] Received invalid UTF-8 data")
+        else:
+            if time.time() - last_packet_time > INTER_PACKET_TIMEOUT:
+                print("[TIMEOUT] No more packets received.")
+                break
 
-    while time.monotonic() - start_time < TEST_DURATION:
-        # Create a payload that contains a ping message with a timestamp
-        timestamp = time.monotonic()
-        message = f"ping|{timestamp}"
-        pad_length = PACKET_SIZES[packet_size_index] - len(message)
-        if pad_length < 0:
-            raise ValueError("Message exceeds packet size")
-        payload = message + ("." * pad_length)
+    end_time = time.time()
+    duration = end_time - start_time
 
-        try:
-            # Send the payload
-            rfm9x.send(bytes(payload, "utf-8"))
-            sent_packets += 1
-
-            # Wait for the echo response
-            response = rfm9x.receive(timeout=TIMEOUT)
-            if response is not None:
-                try:
-                    response_text = response.decode("utf-8")
-                    response_text = response_text[:PACKET_SIZES[packet_size_index]-pad_length]
-                    print(response_text)
-                    parts = response_text.split("|")
-                    print(parts[0], len(parts))
-                    # The base station echoes the message exactly, so we check for the "ping" prefix
-                    if len(parts) >= 2 and parts[0] == "ping":
-                        print(parts[1])
-                        sent_timestamp = float(parts[1])
-
-                        rtt = time.monotonic() - sent_timestamp
-                        total_latency += rtt
-                        received_packets += 1
-                        print(f"[OK] RTT: {rtt:.3f}s | Size: {PACKET_SIZES[packet_size_index]} bytes")
-                    else:
-                        print(f"[WARN] Unexpected response: {response_text}")
-                except Exception as e:
-                    print(f"[ERROR] Failed to decode response: {e}")
-            else:
-                print("[DROP] No response received.")
-                dropped_packets += 1
-        except Exception as e:
-            print(f"[ERROR] Failed to send: {e}")
-            dropped_packets += 1
-
-        time.sleep(PING_INTERVAL)
-
-    # Final test report
-    print("\n--- LoRa Network Test Report ---")
-    print(f"Test duration: {TEST_DURATION} seconds")
-    print(f"Packet size: {PACKET_SIZES[packet_size_index]} bytes")
-    print(f"Sent: {sent_packets}")
-    print(f"Received: {received_packets}")
-    print(f"Dropped: {dropped_packets}")
-
-    if received_packets > 0:
-        avg_latency = total_latency / received_packets
-        throughput = (PACKET_SIZES[packet_size_index] * received_packets * 8) / TEST_DURATION / 1000
-        print(f"Average RTT: {avg_latency:.3f} seconds")
-        print(f"Throughput: {throughput:.2f} kbps")
+    if received_packets == 0:
+        print("[RESULT] No packets received.")
     else:
-        print("No packets received — check your connection or base station.")
+        kbps = (total_bytes / 1024) / duration
+        print(f"[RESULT] Received {received_packets}/{count} packets in {duration:.2f} seconds")
+        print(f"[RESULT] Throughput: {kbps:.2f} KB/s")
