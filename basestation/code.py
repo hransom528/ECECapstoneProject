@@ -1,5 +1,6 @@
 import time
 from lora_setup import get_lora_radio
+from network_test import network_test
 
 # --- Configuration ---
 LORA_FREQ = 915.0         # MHz (set according to your region)
@@ -23,6 +24,16 @@ def main():
             if not raw_input_str:
                 continue
 
+            if raw_input_str.startswith("NETWORK_TEST"):
+                try:
+                    _, count_str = raw_input_str.split()
+                    count = int(count_str)
+                    network_test(rfm9x, count)
+                except (ValueError, IndexError):
+                    print("[ERROR] Usage: NETWORK_TEST <count>")
+                continue
+
+            # Normal message handling
             message = raw_input_str.encode('utf-8')
             retries = 0
 
@@ -45,7 +56,6 @@ def main():
                     except UnicodeDecodeError:
                         print("[ERROR] Received invalid UTF-8 data")
                 else:
-                    # No packet received — check if we’ve already received some and waited enough
                     if received_any and (time.time() - last_packet_time > INTER_PACKET_TIMEOUT):
                         break
 
@@ -55,7 +65,6 @@ def main():
         except Exception as e:
             print(f"[ERROR] Unexpected error: {e}")
             time.sleep(1)
-
 
 if __name__ == "__main__":
     main()
