@@ -3,6 +3,8 @@ import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
 # from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
+from images import load_image_variable_bpp
+import math
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -204,6 +206,46 @@ class ConfigCommand(Command):
         handler.send_response(response)
 
 
+# --- New ScreenshotCommand ---
+class ScreenshotCommand(Command):
+    name = "SCREENSHOT"
+    
+    def execute(self, args, handler):
+        try:
+            # Set image parameters – adjust as needed.
+            bit_depth = 4
+            size = (128, 128)
+            
+            # Determine the image path (assuming the image is stored in a folder "img" next to this file)
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            image_path = os.path.join(script_dir, "img", "img_2.png")
+            
+            # Load, dither, and pack image bits (returns a bytearray)
+            data = load_image_variable_bpp(image_path, bit_depth=bit_depth, size=size)
+            if not data:
+                handler.send_response("Image conversion failed", handler.rfm9x)
+                return
+            
+            # Compress the packed data
+            # compressed = zlib.compress(data)
+            compressed = data
+            total_packets = math.ceil(len(compressed) / handler.max_packet_size)
+            
+            # Send each packet with a header (2 bytes: sequence number, and 2 bytes: total packet count)
+            for i in range(total_packets):
+                start = i * handler.max_packet_size
+                end = start + handler.max_packet_size
+                packet_data = compressed[start:end]
+                header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
+                packet = header + packet_data
+                # Send the packet as raw binary – note that we pass a bytes/bytearray object
+                handler.rfm9x.send(packet)
+                time.sleep(0.1)  # Small delay to let LoRa hardware finish sending
+            handler.send_response("SCREENSHOT SENT", handler.rfm9x)
+        except Exception as e:
+            handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
+
+
 class CommandHandler:
     def __init__(self, rfm9x):
         self.rfm9x = rfm9x
@@ -226,6 +268,7 @@ class CommandHandler:
             HistoryCommand(),
             EchoCommand(),
             ConfigCommand(),
+            ScreenshotCommand(),
         ])
 
     def register_commands(self, command_list):
