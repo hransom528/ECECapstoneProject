@@ -218,7 +218,7 @@ class ScreenshotCommand(Command):
             
             # Determine the image path (assuming the image is stored in a folder "img" next to this file)
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            image_path = os.path.join(script_dir, "img", "img_2.png")
+            image_path = os.path.join(script_dir, "img", "img.png")
             
             # Load, dither, and pack image bits (returns a bytearray)
             data = load_image_variable_bpp(image_path, bit_depth=bit_depth, size=size)
@@ -239,6 +239,7 @@ class ScreenshotCommand(Command):
                 header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
                 packet = header + packet_data
                 # Send the packet as raw binary – note that we pass a bytes/bytearray object
+                print(packet)
                 handler.rfm9x.send(packet)
                 time.sleep(0.1)  # Small delay to let LoRa hardware finish sending
             handler.send_response("SCREENSHOT SENT", handler.rfm9x)

@@ -39,8 +39,6 @@ def main():
                 print("Requesting screenshot from rover...")
                 # Send the SCREENSHOT command as raw bytes so that no conversion occurs.
                 rfm9x.send("SCREENSHOT".encode('utf-8'))
-                # Allow a brief delay for the rover to begin transmitting.
-                time.sleep(0.5)
                 # Receive and reconstruct the photo via the camera module.
                 receive_photo(rfm9x)
                 continue
