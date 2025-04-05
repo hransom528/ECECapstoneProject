@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
-# from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
+from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
 from images import load_image_variable_bpp
 import math
 import zlib
@@ -21,28 +21,29 @@ class MoveCommand(Command):
 
     def execute(self, args, handler):
         if len(args) != 2:
-            handler.send_response("Usage: MOVE <DIRECTION> <DURATION>")
+            handler.send_response("Usage: MOVE <DIRECTION> <DURATION> <THROTTLE>")
             return
 
         direction = args[0].upper()
         try:
             duration = float(args[1])
+            speed = float(args[2])
         except ValueError:
             handler.send_response("Invalid duration. Provide a number.")
-            return
+            return            
 
         response = ""
         if direction == "FORWARD":
-            move_forward()
+            move_forward(speed)
             response = f"→ Moving forward for {duration} seconds"
         elif direction == "BACKWARD":
-            move_backward()
+            move_backward(speed)
             response = f"→ Moving backward for {duration} seconds"
         elif direction == "LEFT":
-            turn_left()
+            turn_left(speed)
             response = f"→ Turning left for {duration} seconds"
         elif direction == "RIGHT":
-            turn_right()
+            turn_right(speed)
             response = f"→ Turning right for {duration} seconds"
         elif direction == "STOP":
             stop()
@@ -207,7 +208,6 @@ class ConfigCommand(Command):
         handler.send_response(response)
 
 
-# --- New ScreenshotCommand ---
 class ScreenshotCommand(Command):
     name = "SCREENSHOT"
     
