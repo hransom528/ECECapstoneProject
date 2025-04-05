@@ -28,6 +28,8 @@ class MoveCommand(Command):
         try:
             duration = float(args[1])
             speed = float(args[2])
+            raw_speed = max(1, min(10, float(args[2])))
+            speed = 0.5 + (raw_speed - 1) * (0.5 / 9)
         except ValueError:
             handler.send_response("Invalid duration. Provide a number.")
             return            
