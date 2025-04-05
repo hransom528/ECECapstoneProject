@@ -1,4 +1,4 @@
-import png
+# import png
 import os
 import math
 import zlib
