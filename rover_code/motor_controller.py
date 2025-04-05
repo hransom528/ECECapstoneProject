@@ -8,12 +8,12 @@ kit = MotorKit(i2c=board.I2C())
 speed = 1
 
 def move_forward(speed=1):
-    kit.motor1.throttle = speed
-    kit.motor3.throttle = speed
-
-def move_backward(speed=1):
     kit.motor1.throttle = -speed
     kit.motor3.throttle = -speed
+
+def move_backward(speed=1):
+    kit.motor1.throttle = speed
+    kit.motor3.throttle = speed
 
 def turn_left(speed=1):
     kit.motor1.throttle = -speed
