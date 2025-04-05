@@ -1,8 +1,15 @@
 import board
 import time
-from adafruit_motorkit import MotorKit
 
-kit = MotorKit(i2c=board.I2C())
+try:
+    from adafruit_motorkit import MotorKit
+    kit = MotorKit(i2c=board.I2C())
+except ValueError as e:
+    print(f"[WARNING] Failed to initialize MotorKit: {e}")
+    kit = None
+except OSError as e:
+    print(f"[WARNING] I2C device not found or not responding: {e}")
+    kit = None
 
 def soft_start(motor, target_speed):
     bump = 0.5 * (1 if target_speed > 0 else -1)
