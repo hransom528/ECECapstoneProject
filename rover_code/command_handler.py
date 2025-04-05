@@ -349,6 +349,7 @@ class CommandHandler:
             else:
                 payload = chunk  # No prefix at all
 
+            print(payload)
             rfm9x.send(payload)
             self.packet_history.append(payload)
 
