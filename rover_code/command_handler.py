@@ -20,7 +20,7 @@ class MoveCommand(Command):
     name = "MOVE"
 
     def execute(self, args, handler):
-        if len(args) != 2:
+        if len(args) not in (2, 3):
             handler.send_response("Usage: MOVE <DIRECTION> <DURATION> <THROTTLE>")
             return
 
