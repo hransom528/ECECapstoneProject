@@ -47,6 +47,7 @@ def send_file(file_path, handler):
         # packet = data_header + packet_data
         handler.rfm9x.send(packet_data)
         print(f"Sent data packet #{i+1}")
+        print(packet_data)
         time.sleep(0.1)
     
     return True
