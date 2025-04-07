@@ -9,7 +9,13 @@ def send_file(file_path, handler):
     splits it into packets based on handler.max_packet_size, and sends
     each packet with a header over the LoRa interface.
     
-    The header consists of:
+    First, a header packet is sent containing:
+      - 3 bytes: "HDR" signature
+      - 2 bytes: total packet count (big-endian)
+      - 1 byte: file type (e.g., 1 for image)
+      - 1 byte: compression flag (1 if compressed, 0 otherwise)
+      
+    Then each data packet is sent with a header:
       - 2 bytes: sequence number (big-endian)
       - 2 bytes: total packet count (big-endian)
     """
@@ -21,19 +27,29 @@ def send_file(file_path, handler):
         return False
 
     # Compress the data to reduce packet count.
-    compressed = zlib.compress(data)
-    total_packets = math.ceil(len(compressed) / handler.max_packet_size)
-    print(f"Sending {total_packets} packets...")
+    compressed_data = zlib.compress(data)
+    total_packets = math.ceil(len(compressed_data) / handler.max_packet_size)
+    print(f"Sending {total_packets} data packets...")
 
+    # Construct header packet.
+    # Header format: b"HDR" + total_packets (2 bytes) + file_type (1 byte) + compression flag (1 byte)
+    file_type = 1         # For example, 1 indicates an image file.
+    compression_flag = 1  # 1 indicates the file is compressed.
+    header_packet = b"HDR" + total_packets.to_bytes(2, 'big') + file_type.to_bytes(1, 'big') + compression_flag.to_bytes(1, 'big')
+    handler.rfm9x.send(header_packet)
+    print("Sent header packet.")
+    time.sleep(0.1)  # Small delay before sending data packets.
+
+    # Send each data packet.
     for i in range(total_packets):
         start = i * handler.max_packet_size
         end = start + handler.max_packet_size
-        packet_data = compressed[start:end]
-        # Create header: sequence number and total packet count.
-        header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
-        packet = header + packet_data
+        packet_data = compressed_data[start:end]
+        # Create data packet header: sequence number and total packet count.
+        data_header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
+        packet = data_header + packet_data
         handler.rfm9x.send(packet)
-        print(f"Sent packet #{i}")
+        print(f"Sent data packet #{i+1}")
         time.sleep(0.1)  # Delay to allow LoRa hardware to finish sending.
     return True
 
