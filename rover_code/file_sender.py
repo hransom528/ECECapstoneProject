@@ -33,6 +33,7 @@ def send_file(file_path, handler):
         header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
         packet = header + packet_data
         handler.rfm9x.send(packet)
+        print(f"Sent packet #{i}")
         time.sleep(0.1)  # Delay to allow LoRa hardware to finish sending.
     return True
 
