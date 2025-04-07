@@ -14,6 +14,10 @@ def send_file(file_path, handler):
     compressed_data = zlib.compress(data)
     total_packets = math.ceil(len(compressed_data) / handler.max_packet_size)
     print(f"Sending {total_packets} data packets...")
+    
+    print(compressed_data)
+    print(to_hex_str(compressed_data))
+
 
     # Define file type codes (expand as needed)
     FILE_TYPES = {
@@ -57,7 +61,7 @@ def send_file(file_path, handler):
         # packet = data_header + packet_data
         print(to_hex_str(packet_data))
         handler.rfm9x.send(packet_data)
-        print(f"Sent data packet #{i+1}")
+        # print(f"Sent data packet #{i+1}")
         time.sleep(0.1)
     
     return True
