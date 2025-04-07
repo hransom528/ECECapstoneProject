@@ -74,8 +74,8 @@ def send_packet(packet_index, file_path, handler):
     start = packet_index * handler.max_packet_size
     end = start + handler.max_packet_size
     packet_data = compressed[start:end]
-    header = packet_index.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
-    packet = header + packet_data
-    handler.rfm9x.send(packet)
+    # header = packet_index.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
+    # packet = header + packet_data
+    handler.rfm9x.send(packet_data)
     print(f"Resent packet {packet_index}")
     return True
