@@ -1,4 +1,4 @@
-# import png
+import png
 import os
 import math
 import zlib
@@ -190,7 +190,7 @@ def sizer(len_data):
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    input_image_path = os.path.join(script_dir, "img", "img_2.png")
+    input_image_path = os.path.join(script_dir, "img", "img.png")
     bin_output_path = os.path.join(script_dir, "output.bin")
 
     bit_depth = 4  # Adjust bit depth as desired (e.g., 2, 3, 4, etc.)
