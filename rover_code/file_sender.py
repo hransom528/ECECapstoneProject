@@ -3,6 +3,15 @@ def send_file(file_path, handler):
     import math
     import time
     import zlib
+    
+    def to_hex_str(data):
+        hex_chars = '0123456789abcdef'
+        hex_str = ''
+        for byte in data:
+            high = hex_chars[(byte >> 4) & 0x0F]
+            low = hex_chars[byte & 0x0F]
+            hex_str += high + low
+        return hex_str
 
     try:
         with open(file_path, 'rb') as f:
@@ -42,14 +51,7 @@ def send_file(file_path, handler):
     print("Sent header packet.")
     time.sleep(0.1)
     
-    def to_hex_str(data):
-        hex_chars = '0123456789abcdef'
-        hex_str = ''
-        for byte in data:
-            high = hex_chars[(byte >> 4) & 0x0F]
-            low = hex_chars[byte & 0x0F]
-            hex_str += high + low
-        return hex_str
+
 
 
     # Send each data packet with headers
