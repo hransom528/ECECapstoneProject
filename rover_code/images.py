@@ -1,7 +1,7 @@
-import png
 import os
 import math
 import zlib
+import png
 
 def clip(value):
     return int(max(0, min(255, round(value))))
@@ -9,7 +9,7 @@ def clip(value):
 def read_image_to_grayscale(image_path):
     """
     Reads a PNG file using pypng and returns a 2D list of grayscale values (0-255).
-    If the image is not already grayscale, it converts each pixel using the luminance formula.
+    If the image is not already grayscale, converts each pixel using the luminance formula.
     """
     try:
         reader = png.Reader(image_path)
@@ -17,7 +17,7 @@ def read_image_to_grayscale(image_path):
         rows = list(rows)
         image = []
         if info.get('greyscale', False):
-            # Each row is already grayscale.
+            # Image is already grayscale.
             for row in rows:
                 image.append(list(row))
         else:
@@ -29,7 +29,7 @@ def read_image_to_grayscale(image_path):
                     R = row[i]
                     G = row[i+1]
                     B = row[i+2]
-                    # Use the standard luminosity formula
+                    # Standard luminosity formula.
                     gray = int(round(0.299 * R + 0.587 * G + 0.114 * B))
                     new_row.append(gray)
                 image.append(new_row)
@@ -40,7 +40,7 @@ def read_image_to_grayscale(image_path):
 
 def resize_image(image, new_size):
     """
-    Resizes a 2D list 'image' (list of rows) to new_size (width, height)
+    Resizes a 2D list 'image' to new_size (width, height)
     using nearest-neighbor interpolation.
     """
     new_width, new_height = new_size
@@ -62,9 +62,8 @@ def resize_image(image, new_size):
 
 def load_image_variable_bpp(image_path, bit_depth=2, size=(256, 256)):
     """
-    Loads an image using pypng, converts it to grayscale if necessary, applies
-    Floyd–Steinberg dithering to quantize to the given bit depth (between 1 and 7),
-    and returns packed binary data.
+    Loads an image, converts to grayscale if needed, applies Floyd–Steinberg
+    dithering to quantize to the given bit depth, and returns packed binary data.
     """
     assert 1 <= bit_depth <= 7, "bit_depth must be between 1 and 7"
 
@@ -79,7 +78,7 @@ def load_image_variable_bpp(image_path, bit_depth=2, size=(256, 256)):
         width = len(image[0])
         max_val = (1 << bit_depth) - 1
 
-        # Apply Floyd–Steinberg dithering and quantize.
+        # Apply Floyd–Steinberg dithering and quantization.
         for y in range(height):
             for x in range(width):
                 old_pixel = image[y][x]
@@ -97,14 +96,14 @@ def load_image_variable_bpp(image_path, bit_depth=2, size=(256, 256)):
                 if x + 1 < width and y + 1 < height:
                     image[y+1][x+1] = clip(image[y+1][x+1] + error * 1 / 16)
 
-        # Flatten and quantize pixel values (from 0 to max_val).
+        # Flatten and quantize pixels.
         pixels = []
         for row in image:
             for pixel in row:
                 quantized = pixel * max_val // 255
                 pixels.append(quantized)
 
-        # Pack the pixel values into a bytearray.
+        # Pack pixel values into a bytearray.
         packed_bytes = bytearray()
         buffer = 0
         bits_filled = 0
@@ -128,7 +127,7 @@ def load_image_variable_bpp(image_path, bit_depth=2, size=(256, 256)):
 
 def compress_and_save(data, output_path):
     """
-    Compresses the binary data using zlib and writes it to a file.
+    Compresses binary data using zlib and writes it to a file.
     """
     compressed = zlib.compress(data)
     with open(output_path, 'wb') as f:
@@ -168,9 +167,8 @@ def load_bin_and_reconstruct_image(bin_path, bit_depth=4, size=(256, 256), image
 
             buffer &= (1 << bits_in_buffer) - 1
 
-        # If requested, save the reconstructed image as a PNG file.
         if image_show:
-            # Convert the flat list of pixels into a 2D list.
+            # Convert flat pixel list into 2D image.
             image = []
             for i in range(size[1]):
                 row = pixels[i*size[0]:(i+1)*size[0]]
@@ -193,7 +191,7 @@ if __name__ == "__main__":
     input_image_path = os.path.join(script_dir, "img", "img.png")
     bin_output_path = os.path.join(script_dir, "output.bin")
 
-    bit_depth = 4  # Adjust bit depth as desired (e.g., 2, 3, 4, etc.)
+    bit_depth = 4  # Adjust bit depth as desired.
     a = 128  # Image dimensions (a x a)
 
     data = load_image_variable_bpp(input_image_path, bit_depth=bit_depth, size=(a, a))
