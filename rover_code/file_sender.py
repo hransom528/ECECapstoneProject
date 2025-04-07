@@ -43,9 +43,9 @@ def send_file(file_path, handler):
         start = i * handler.max_packet_size
         end = start + handler.max_packet_size
         packet_data = compressed_data[start:end]
-        data_header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
-        packet = data_header + packet_data
-        handler.rfm9x.send(packet)
+        # data_header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
+        # packet = data_header + packet_data
+        handler.rfm9x.send(packet_data)
         print(f"Sent data packet #{i+1}")
         time.sleep(0.1)
     
