@@ -1,7 +1,18 @@
 import os
 import math
-import zlib
-import png
+
+try:
+    import zlib
+except ImportError:
+    zlib = None
+    print("Warning: zlib module is not available. Compression-related features may not work.")
+
+try:
+    import png
+except ImportError:
+    png = None
+    print("Warning: png module is not available. PNG-related features will be disabled.")
+
 
 def clip(value):
     return int(max(0, min(255, round(value))))
