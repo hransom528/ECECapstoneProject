@@ -1,71 +1,21 @@
-def send_file(file_path, handler):
-    import os
-    import math
-    import time
-    import zlib
-    
-    def to_hex_str(data):
-        hex_chars = '0123456789abcdef'
-        hex_str = ''
-        for byte in data:
-            high = hex_chars[(byte >> 4) & 0x0F]
-            low = hex_chars[byte & 0x0F]
-            hex_str += high + low
-        return hex_str
+import time
+import math
 
-    try:
-        with open(file_path, 'rb') as f:
-            data = f.read()
-    except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
-        return False
+def send_file(hex_data, handler):
+    """
+    Sends a base16 (hex) encoded string over LoRa using the provided handler.
+    Each packet contains handler.max_packet_size bytes = max_packet_size hex characters.
+    """
+    chars_per_packet = handler.max_packet_size
+    total_packets = math.ceil(len(hex_data) / chars_per_packet)
 
-    compressed_data = zlib.compress(data)
-    total_packets = math.ceil(len(compressed_data) / handler.max_packet_size)
-    print(f"Sending {total_packets} data packets...")
-    
-    print(compressed_data)
-    print(to_hex_str(compressed_data))
-
-
-    # Define file type codes (expand as needed)
-    FILE_TYPES = {
-        1: "image",
-        2: "text",
-        3: "binary",
-    }
-
-    # File header values
-    file_type = 1         # Example: 1 = image
-    compression_flag = 1  # 1 = compressed, 0 = raw
-
-    # Send binary header packet
-    header_packet = b"HDR" + total_packets.to_bytes(2, 'big') + file_type.to_bytes(1, 'big') + compression_flag.to_bytes(1, 'big')
-    handler.rfm9x.send(header_packet)
-
-    # Print human-readable header info
-    print("[HEADER INFO]")
-    print(f"  File type       : {FILE_TYPES.get(file_type, 'unknown')} (code {file_type})")
-    print(f"  Compressed      : {'yes' if compression_flag else 'no'}")
-    print(f"  Total packets   : {total_packets}")
-    print("Sent header packet.")
-    time.sleep(0.1)
-    
-
-
-
-    # Send each data packet with headers
     for i in range(total_packets):
-        start = i * handler.max_packet_size
-        end = start + handler.max_packet_size
-        packet_data = compressed_data[start:end]
-        # data_header = i.to_bytes(2, 'big') + total_packets.to_bytes(2, 'big')
-        # packet = data_header + packet_data
-        print(to_hex_str(packet_data))
-        handler.rfm9x.send(packet_data)
-        # print(f"Sent data packet #{i+1}")
+        start = i * chars_per_packet
+        end = start + chars_per_packet
+        packet = hex_data[start:end]
+        handler.rfm9x.send(packet.encode('ascii'))
         time.sleep(0.1)
-    
+
     return True
 
 
