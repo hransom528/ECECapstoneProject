@@ -1,5 +1,13 @@
-import board
 import time
+
+try:
+    import board
+except ModuleNotFoundError as e:
+    print(f"[WARNING] Failed to initialize the board: {e}")
+    kit = None
+except OSError as e:
+    print(f"[WARNING] Failed to initialize the board: {e}")
+    kit = None
 
 try:
     from adafruit_motorkit import MotorKit
@@ -10,6 +18,8 @@ except ValueError as e:
 except OSError as e:
     print(f"[WARNING] I2C device not found or not responding: {e}")
     kit = None
+except ModuleNotFoundError as e:
+    print(f"[WARNING] Adafruit Motorkit module is not installed: {e}")
 
 def soft_start(motor, target_speed):
     bump = 0.5 * (1 if target_speed > 0 else -1)
