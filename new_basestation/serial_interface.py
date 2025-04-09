@@ -49,24 +49,66 @@ class SerialInterface:
             print(f"[ERROR] Could not open serial port {self.port}: {e}")
             raise e
 
-    def finish_file_transfer(self):
-        """
-        Called when no raw data has been received for a while.
-        Writes the accumulated file transfer data to a file and resets file transfer mode.
-        """
-        if not self.file_transfer_buffer:
-            return
-        output_path = "received_file.bin"
-        try:
-            with open(output_path, 'wb') as f:
-                f.write(self.file_transfer_buffer)
-            print(f"[FEATHER] File transfer complete. Saved {len(self.file_transfer_buffer)} bytes to {output_path}")
-        except Exception as e:
-            print(f"[ERROR] Writing file transfer data failed: {e}")
-        # Reset file transfer state.
-        self.file_transfer_active = False
-        self.file_transfer_buffer = bytearray()
-        self.file_transfer_last_time = None
+import zlib
+import re
+import png  # make sure pypng is installed
+
+def finish_file_transfer(self, bit_depth=4, image_size=(128, 128)):
+    """
+    Called when no raw data has been received for a while.
+    Decodes hex string, decompresses, reconstructs image, and saves as PNG.
+    """
+    if not self.file_transfer_buffer:
+        return
+
+    try:
+        hex_str = self.file_transfer_buffer.decode('ascii').strip()
+        if not re.fullmatch(r'[0-9a-fA-F]+', hex_str):
+            raise ValueError("Invalid hex data received.")
+
+        compressed_data = bytes.fromhex(hex_str)
+        decompressed = zlib.decompress(compressed_data)
+
+        width, height = image_size
+        total_pixels = width * height
+        max_val = (1 << bit_depth) - 1
+        scale = 255 // max_val
+
+        pixels = []
+        buffer = 0
+        bits_in_buffer = 0
+
+        for byte in decompressed:
+            buffer = (buffer << 8) | byte
+            bits_in_buffer += 8
+
+            while bits_in_buffer >= bit_depth and len(pixels) < total_pixels:
+                bits_in_buffer -= bit_depth
+                val = (buffer >> bits_in_buffer) & max_val
+                pixels.append(val * scale)
+
+            buffer &= (1 << bits_in_buffer) - 1
+
+        # Convert flat pixel list to 2D array
+        image = []
+        for i in range(height):
+            row = pixels[i * width:(i + 1) * width]
+            image.append(row)
+
+        output_path = "reconstructed.png"
+        with open(output_path, 'wb') as f:
+            writer = png.Writer(width, height, greyscale=True, bitdepth=8)
+            writer.write(f, image)
+
+        print(f"[FEATHER] Image reconstruction complete. Saved to '{output_path}'")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to reconstruct image: {e}")
+
+    # Reset buffer
+    self.file_transfer_active = False
+    self.file_transfer_buffer = bytearray()
+    self.file_transfer_last_time = None
 
     def start_reader(self):
         def read_from_port():
