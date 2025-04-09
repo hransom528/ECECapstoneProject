@@ -36,19 +36,19 @@ class MoveCommand(Command):
             return            
 
         response = ""
-        if direction == "FORWARD":
+        if direction.upper() == "FORWARD":
             move_forward(speed)
             response = f"→ Moving forward for {duration} seconds"
-        elif direction == "BACKWARD":
+        elif direction.upper() == "BACKWARD":
             move_backward(speed)
             response = f"→ Moving backward for {duration} seconds"
-        elif direction == "LEFT":
+        elif direction.upper() == "LEFT":
             turn_left(speed)
             response = f"→ Turning left for {duration} seconds"
-        elif direction == "RIGHT":
+        elif direction.upper() == "RIGHT":
             turn_right(speed)
             response = f"→ Turning right for {duration} seconds"
-        elif direction == "STOP":
+        elif direction.upper() == "STOP":
             stop()
             response = "→ Stopping motors"
         else:
@@ -57,7 +57,7 @@ class MoveCommand(Command):
 
         handler.send_response(response)
 
-        if direction in ["FORWARD", "BACKWARD", "LEFT", "RIGHT"]:
+        if direction.upper() in ["FORWARD", "BACKWARD", "LEFT", "RIGHT"]:
             time.sleep(duration)
             stop()
 
