@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
 from motor_controller import move_forward, move_backward, turn_left, turn_right, stop
-from images import load_image_variable_bpp
+from images import convert_image
 from file_sender import send_file
 import math
 import zlib
@@ -225,21 +225,17 @@ class ScreenshotCommand(Command):
             image_path = os.path.join(script_dir, "img", "img_2.png")
             
             # Load, dither, and pack image bits (returns a bytearray)
-            data = load_image_variable_bpp(image_path, bit_depth=bit_depth, size=size)
-            if not data:
+            hex_data = convert_image(image_path, bit_depth=bit_depth, size=size)
+            if not hex_data:
                 handler.send_response("Image conversion failed", handler.rfm9x)
                 return
             
-            # Compress the packed data
-            compressed = zlib.compress(data)
+            with open("terminal.txt", "w") as f:
+                f.write(hex_data)
             
-            # Save the compressed data to a temporary file
-            bin_output_path = os.path.join(script_dir, "output.bin")
-            with open(bin_output_path, 'wb') as f:
-                f.write(compressed)
-            
-            # Send the file using file_sender's send_file function
-            if send_file(bin_output_path, handler):
+            handler.send_response(f"Sending an {size} {bit_depth}bpp image")
+            # # Send the file using file_sender's send_file function
+            if send_file(hex_data, handler):
                 handler.send_response("SCREENSHOT SENT", handler.rfm9x)
             else:
                 handler.send_response("Failed to send screenshot", handler.rfm9x)
