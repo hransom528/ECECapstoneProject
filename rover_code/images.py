@@ -2,6 +2,7 @@ import os
 import math
 import zlib
 import png
+import base64
 
 
 def clip(value):
@@ -101,8 +102,11 @@ def convert_image(image_path, bit_depth=4, size=(256, 256), dithering=True):
         packed_bytes.append(buffer & 0xFF)
 
     compressed = zlib.compress(packed_bytes)
-    hex_output = compressed.hex()
 
-    print(f"Image converted successfully. Total hex length: {len(hex_output)}")
+    # hex_output = compressed.hex()
+    # print(f"Image converted successfully. Total hex length: {len(hex_output)}")
+    # return hex_output
 
-    return hex_output
+    b64_output = base64.b64encode(compressed).decode('ascii')
+    print(f"Image converted successfully. Total base64 length: {len(b64_output)}")
+    return b64_output
