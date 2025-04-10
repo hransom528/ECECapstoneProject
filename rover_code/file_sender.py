@@ -13,6 +13,7 @@ def send_file(hex_data, handler):
         start = i * chars_per_packet
         end = start + chars_per_packet
         packet = hex_data[start:end]
+        print(packet.encode('ascii'))
         handler.rfm9x.send(packet.encode('ascii'))
         time.sleep(0.1)
 
