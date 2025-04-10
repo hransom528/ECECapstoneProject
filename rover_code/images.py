@@ -1,5 +1,7 @@
 import os
 import math
+from PIL import Image
+import io
 
 try:
     import zlib
@@ -19,44 +21,36 @@ def clip(value):
 
 
 def read_image_to_grayscale(image_path):
-    """
-    Reads a PNG file using pypng and returns a 2D list of grayscale values (0-255).
-    Converts to grayscale if needed.
-    """
-    try:
-        reader = png.Reader(image_path)
-        width, height, rows, info = reader.read()
-        rows = list(rows)
-        image = []
-        if info.get('greyscale', False):
-            for row in rows:
-                image.append(list(row))
-        else:
-            channels = info.get('planes', 3)
-            for row in rows:
-                row = list(row)
-                new_row = []
-                for i in range(0, len(row), channels):
-                    R = row[i]
-                    G = row[i+1]
-                    B = row[i+2]
-                    gray = int(round(0.299 * R + 0.587 * G + 0.114 * B))
-                    new_row.append(gray)
-                image.append(new_row)
-        return image, width, height
-    except Exception as e:
-        print(f"Error reading image: {e}")
-        return None, None, None
+    reader = png.Reader(image_path)
+    width, height, rows, info = reader.read()
+    rows = list(rows)
+    image = []
+
+    if info.get('greyscale', False):
+        for row in rows:
+            image.append(list(row))
+    else:
+        channels = info.get('planes', 3)
+        for row in rows:
+            row = list(row)
+            new_row = []
+            for i in range(0, len(row), channels):
+                R = row[i]
+                G = row[i+1]
+                B = row[i+2]
+                gray = int(round(0.299 * R + 0.587 * G + 0.114 * B))
+                new_row.append(gray)
+            image.append(new_row)
+
+    return image, width, height
 
 
 def resize_image(image, new_size):
-    """
-    Resizes a 2D list 'image' to new_size (width, height) using nearest-neighbor.
-    """
     new_width, new_height = new_size
     orig_height = len(image)
     orig_width = len(image[0])
     new_image = []
+
     for j in range(new_height):
         orig_j = int(j * orig_height / new_height)
         row = []
@@ -64,20 +58,14 @@ def resize_image(image, new_size):
             orig_i = int(i * orig_width / new_width)
             row.append(image[orig_j][orig_i])
         new_image.append(row)
+
     return new_image
 
 
-def convert_image(image_path, bit_depth=4, size=(256, 256)):
-    """
-    Main function. Converts an image to compressed binary form,
-    and returns it as a hex string suitable for saving to terminal.txt.
-    """
+def convert_image(image_path, bit_depth=4, size=(256, 256), dithering=True):
     assert 1 <= bit_depth <= 7, "bit_depth must be between 1 and 7"
 
     image, _, _ = read_image_to_grayscale(image_path)
-    if image is None:
-        return None
-
     image = resize_image(image, size)
     width, height = size
     max_val = (1 << bit_depth) - 1
@@ -127,10 +115,10 @@ def convert_image(image_path, bit_depth=4, size=(256, 256)):
     hex_output = compressed.hex()
 
     print(f"Image converted successfully. Total hex length: {len(hex_output)}")
-    sizer(len(compressed))
+    # sizer(len(compressed))
 
     return hex_output
 
-def sizer(len_data):
-    packets = len_data / 224
-    print(f"Estimated packets to send: {math.ceil(packets)}")
+# def sizer(len_data):
+#     packets = len_data / 128
+#     print(f"Estimated packets to send: {math.ceil(packets)}")
