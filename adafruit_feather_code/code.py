@@ -16,23 +16,23 @@ def handle_command(rfm9x, command):
     print(f"[TX] Sending ({len(message)} bytes): {command}")
     rfm9x.send(message)
 
-    print(f"[RX] Waiting for response... (timeout: {RECEIVE_TIMEOUT}s)")
-    start_time = time.time()
-    last_packet_time = time.time()
+    print(f"[RX] Waiting for response... (timeout resets on packet receipt, max idle: {RECEIVE_TIMEOUT}s)")
+    start_time = time.time()  # Start overall timer
     received_any = False
 
-    while time.time() - start_time < RECEIVE_TIMEOUT:
+    while True:
         packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT)
         if packet:
             try:
                 decoded = packet.decode('utf-8').strip()
                 print(f"[RECEIVED] [{len(packet)} bytes]: {decoded}")
-                last_packet_time = time.time()
                 received_any = True
+                start_time = time.time()  # Reset timeout on packet receipt
             except UnicodeDecodeError:
                 print("[ERROR] Received invalid UTF-8 data")
         else:
-            if received_any and (time.time() - last_packet_time > INTER_PACKET_TIMEOUT):
+            if time.time() - start_time > RECEIVE_TIMEOUT:
+                print(f"[RX] Timeout: No packets received for {RECEIVE_TIMEOUT} seconds.")
                 break
 
 def main():
