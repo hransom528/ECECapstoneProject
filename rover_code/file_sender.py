@@ -6,13 +6,11 @@ def send_file(hex_data, handler):
     Sends a base16 (hex) encoded string over LoRa using the provided handler.
     Each packet contains handler.max_packet_size bytes = max_packet_size hex characters.
     """
-    chars_per_packet = handler.max_packet_size
-    total_packets = math.ceil(len(hex_data) / chars_per_packet)
+    packet_list = [hex_data[i:i + handler.max_packet_size] for i in range(0, len(hex_data), handler.max_packet_size)]
+    
+    print(f"Total packets to send: {len(packet_list)}")
 
-    for i in range(total_packets):
-        start = i * chars_per_packet
-        end = start + chars_per_packet
-        packet = hex_data[start:end]
+    for packet in packet_list:
         print(packet.encode('ascii'))
         handler.rfm9x.send(packet.encode('ascii'))
         time.sleep(1)
