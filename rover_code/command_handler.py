@@ -345,7 +345,7 @@ class CommandHandler:
                 payload = chunk  # No prefix at all
 
             print(payload)
-            rfm9x.send(payload)
+            rfm9x.send(payload, ack=True)
             self.packet_history.append(payload)
 
             if len(self.packet_history) > MAX_HISTORY:
