@@ -223,7 +223,7 @@ class ScreenshotCommand(Command):
             
             # Determine the image path (assuming the image is stored in a folder "img" next to this file)
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            image_path = os.path.join(script_dir, "img", "img.png")
+            image_path = os.path.join(script_dir, "img", "img_2.png")
             
             # Load, dither, and pack image bits (returns a bytearray)
             hex_data = convert_image(image_path, bit_depth=bit_depth, size=size)
