@@ -1,17 +1,43 @@
 import zlib
 import re
 import png
-from PIL import Image
-import io
 
 
 def from_hex_str(hex_str):
     return bytes(int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2))
 
 
+def unpack_pixels(data, bit_depth, width, height):
+    total_pixels = width * height
+    max_val = (1 << bit_depth) - 1
+    scale = 255 // max_val
+
+    pixels = []
+    buffer = 0
+    bits_in_buffer = 0
+
+    for byte in data:
+        buffer = (buffer << 8) | byte
+        bits_in_buffer += 8
+
+        while bits_in_buffer >= bit_depth and len(pixels) < total_pixels:
+            bits_in_buffer -= bit_depth
+            val = (buffer >> bits_in_buffer) & max_val
+            pixels.append(val * scale)
+
+        buffer &= (1 << bits_in_buffer) - 1
+
+    if len(pixels) < total_pixels:
+        raise ValueError(f"Not enough pixel data: expected {total_pixels}, got {len(pixels)}")
+
+    return pixels
+
+
 def convert_terminal_to_image(
     terminal_file='terminal.txt',
-    output_path='reconstructed.png'
+    output_path='reconstructed.png',
+    bit_depth=4,
+    size=(64,64)
 ):
     try:
         with open(terminal_file, 'r') as f:
@@ -34,11 +60,17 @@ def convert_terminal_to_image(
         hex_data = ''.join(hex_lines)
         compressed_data = from_hex_str(hex_data)
 
-        jpg_bytes = zlib.decompress(compressed_data)
+        raw_data = zlib.decompress(compressed_data)
 
-        jpg_image = Image.open(io.BytesIO(jpg_bytes)).convert('L')
+        width, height = size
+        pixels = unpack_pixels(raw_data, bit_depth, width, height)
 
-        jpg_image.save(output_path)
+        # Split flat pixels into rows
+        image = [pixels[i * width:(i + 1) * width] for i in range(height)]
+
+        with open(output_path, 'wb') as f:
+            writer = png.Writer(width, height, greyscale=True, bitdepth=8)
+            writer.write(f, image)
 
         print(f"Reconstructed image saved to '{output_path}'")
 
