@@ -15,7 +15,7 @@ def send_file(hex_data, handler):
         packet = hex_data[start:end]
         print(packet.encode('ascii'))
         handler.rfm9x.send(packet.encode('ascii'))
-        time.sleep(0.5)
+        time.sleep(1)
 
     return True
 
