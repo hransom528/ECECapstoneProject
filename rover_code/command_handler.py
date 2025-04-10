@@ -219,7 +219,7 @@ class ScreenshotCommand(Command):
         try:
             # Set image parameters – adjust as needed.
             bit_depth = 4
-            size = (128, 128)
+            size = (64, 64)
             
             # Determine the image path (assuming the image is stored in a folder "img" next to this file)
             script_dir = os.path.dirname(os.path.abspath(__file__))
