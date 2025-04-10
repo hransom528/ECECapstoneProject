@@ -70,48 +70,36 @@ def convert_image(image_path, bit_depth=4, size=(256, 256), dithering=True):
     width, height = size
     max_val = (1 << bit_depth) - 1
 
-    # Floyd–Steinberg dithering and quantization
-    for y in range(height):
-        for x in range(width):
-            old_pixel = image[y][x]
-            new_pixel_val = round(old_pixel * max_val / 255)
-            new_pixel = int(new_pixel_val * (255 // max_val))
-            image[y][x] = new_pixel
-            error = old_pixel - new_pixel
+    if dithering:
+        for y in range(height):
+            for x in range(width):
+                old_pixel = image[y][x]
+                new_pixel_val = round(old_pixel * max_val / 255)
+                new_pixel = int(new_pixel_val * (255 // max_val))
+                image[y][x] = new_pixel
+                error = old_pixel - new_pixel
 
-            if x + 1 < width:
-                image[y][x+1] = clip(image[y][x+1] + error * 7 / 16)
-            if x - 1 >= 0 and y + 1 < height:
-                image[y+1][x-1] = clip(image[y+1][x-1] + error * 3 / 16)
-            if y + 1 < height:
-                image[y+1][x] = clip(image[y+1][x] + error * 5 / 16)
-            if x + 1 < width and y + 1 < height:
-                image[y+1][x+1] = clip(image[y+1][x+1] + error * 1 / 16)
+                if x + 1 < width:
+                    image[y][x+1] = clip(image[y][x+1] + error * 7 / 16)
+                if x - 1 >= 0 and y + 1 < height:
+                    image[y+1][x-1] = clip(image[y+1][x-1] + error * 3 / 16)
+                if y + 1 < height:
+                    image[y+1][x] = clip(image[y+1][x] + error * 5 / 16)
+                if x + 1 < width and y + 1 < height:
+                    image[y+1][x+1] = clip(image[y+1][x+1] + error * 1 / 16)
 
-    # Quantize and pack pixel values
-    pixels = []
-    for row in image:
-        for pixel in row:
-            quantized = pixel * max_val // 255
-            pixels.append(quantized)
+    # Convert to Pillow image
+    pil_img = Image.new("L", size)
+    flat_pixels = [p for row in image for p in row]
+    pil_img.putdata(flat_pixels)
 
-    packed_bytes = bytearray()
-    buffer = 0
-    bits_filled = 0
+    # Compress as JPG to BytesIO
+    jpg_buffer = io.BytesIO()
+    pil_img.save(jpg_buffer, format='JPEG', quality=15)  # High compression
+    jpg_bytes = jpg_buffer.getvalue()
 
-    for val in pixels:
-        buffer = (buffer << bit_depth) | val
-        bits_filled += bit_depth
-
-        while bits_filled >= 8:
-            bits_filled -= 8
-            packed_bytes.append((buffer >> bits_filled) & 0xFF)
-
-    if bits_filled > 0:
-        buffer = buffer << (8 - bits_filled)
-        packed_bytes.append(buffer & 0xFF)
-
-    compressed = zlib.compress(packed_bytes)
+    # Compress using zlib
+    compressed = zlib.compress(jpg_bytes)
     hex_output = compressed.hex()
 
     print(f"Image converted successfully. Total hex length: {len(hex_output)}")
