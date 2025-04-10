@@ -7,6 +7,7 @@ from images import convert_image
 from file_sender import send_file
 import math
 import zlib
+from camera import capture_photo
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -244,6 +245,35 @@ class ScreenshotCommand(Command):
         except Exception as e:
             handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
 
+class CameraCommand(Command):
+    name = "CAMERA"
+    
+    def execute(self, args, handler):
+        try:
+            image_path = capture_photo()
+            
+            # Set image parameters – adjust as needed.
+            bit_depth = 4
+            size = (64, 64)
+            
+            # Load, dither, and pack image bits (returns a bytearray)
+            hex_data = convert_image(image_path, bit_depth=bit_depth, size=size, dithering=False)
+            if not hex_data:
+                handler.send_response("Image conversion failed", handler.rfm9x)
+                return
+            
+            with open("terminal.txt", "w") as f:
+                f.write(hex_data)
+            
+            handler.send_response(f"Sending an {size} {bit_depth}bpp image")
+            # # Send the file using file_sender's send_file function
+            if send_file(hex_data, handler):
+                handler.send_response("SCREENSHOT SENT", handler.rfm9x)
+            else:
+                handler.send_response("Failed to send screenshot", handler.rfm9x)
+                
+        except Exception as e:
+            handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
 
 class ResendCommand(Command):
     name = "RESEND"
