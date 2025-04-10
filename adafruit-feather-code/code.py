@@ -1,8 +1,5 @@
 import time
 from lora_setup import get_lora_radio
-from network_test import network_test
-from camera import receive_photo
-# from scripting import run_script
 import os
 
 # --- Configuration ---
@@ -14,22 +11,6 @@ LOOP_SLEEP = 0.01
 MAX_RETRIES = 0
 
 def handle_command(rfm9x, command):
-    if command.startswith("NETWORK_TEST"):
-        try:
-            _, count_str = command.split()
-            count = int(count_str)
-            network_test(rfm9x, count)
-        except (ValueError, IndexError):
-            print("[ERROR] Usage: NETWORK_TEST <count>")
-        return
-
-    elif command.startswith("SCREENSHOT"):
-        print("Requesting screenshot from rover...")
-        rfm9x.send("SCREENSHOT".encode('utf-8'))
-        time.sleep(0.5)
-        receive_photo(rfm9x)
-        return
-
     # Send a normal message
     message = command.encode('utf-8')
     print(f"[TX] Sending ({len(message)} bytes): {command}")
