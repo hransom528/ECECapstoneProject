@@ -10,7 +10,7 @@ The purpose of this module is to echo packets back, just as they were received.
 
 # --- Configuration Parameters ---
 RECEIVE_TIMEOUT = 2.0   # Timeout (seconds) for rfm9x.receive() to wait for a packet
-LOOP_SLEEP = 0.001        # Sleep duration (seconds) in main loop to yield CPU control
+LOOP_SLEEP = 1        # Sleep duration (seconds) in main loop to yield CPU control
 
 # --- Setup SPI Interface and LoRa pins ---
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
