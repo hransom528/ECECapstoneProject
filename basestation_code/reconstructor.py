@@ -2,6 +2,13 @@ import zlib
 import re
 import png
 
+import base64  # make sure this is imported at the top
+
+def from_base64_str(b64_str):
+    """
+    Converts a base64 string to raw bytes.
+    """
+    return base64.b64decode(b64_str)
 
 def from_hex_str(hex_str):
     return bytes(int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2))
@@ -53,12 +60,13 @@ def convert_terminal_to_image(
             line for line in cleaned_lines
             if line
             and not line.startswith('[FEATHER]')
-            and not re.fullmatch(r'-+', line)
-            and re.fullmatch(r'[0-9a-fA-F]+', line)
+            # and not re.fullmatch(r'-+', line)
+            # and re.fullmatch(r'[0-9a-fA-F]+', line)
         ]
 
         hex_data = ''.join(hex_lines)
-        compressed_data = from_hex_str(hex_data)
+        # compressed_data = from_hex_str(hex_data)
+        compressed_data = from_base64_str(hex_data)
 
         raw_data = zlib.decompress(compressed_data)
 
