@@ -159,6 +159,7 @@ class EchoCommand(Command):
             message = args[1] if len(args) > 1 else ""
             for _ in range(times):
                 handler.send_response(message)
+                time.sleep(0.1)
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
 
