@@ -159,6 +159,7 @@ class EchoCommand(Command):
             message = args[1] if len(args) > 1 else ""
             for _ in range(times):
                 handler.send_response(message)
+                time.sleep(0.1)
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
 
@@ -222,7 +223,7 @@ class ScreenshotCommand(Command):
             
             # Determine the image path (assuming the image is stored in a folder "img" next to this file)
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            image_path = os.path.join(script_dir, "img", "img_2.png")
+            image_path = os.path.join(script_dir, "img", "img.png")
             
             # Load, dither, and pack image bits (returns a bytearray)
             hex_data = convert_image(image_path, bit_depth=bit_depth, size=size)
