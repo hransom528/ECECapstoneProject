@@ -1,19 +1,7 @@
 import os
 import math
-from PIL import Image
-import io
-
-try:
-    import zlib
-except ImportError:
-    zlib = None
-    print("Warning: zlib module is not available.")
-
-try:
-    import png
-except ImportError:
-    png = None
-    print("Warning: png module is not available.")
+import zlib
+import png
 
 
 def clip(value):
@@ -36,8 +24,8 @@ def read_image_to_grayscale(image_path):
             new_row = []
             for i in range(0, len(row), channels):
                 R = row[i]
-                G = row[i+1]
-                B = row[i+2]
+                G = row[i + 1]
+                B = row[i + 2]
                 gray = int(round(0.299 * R + 0.587 * G + 0.114 * B))
                 new_row.append(gray)
             image.append(new_row)
@@ -80,33 +68,41 @@ def convert_image(image_path, bit_depth=4, size=(256, 256), dithering=True):
                 error = old_pixel - new_pixel
 
                 if x + 1 < width:
-                    image[y][x+1] = clip(image[y][x+1] + error * 7 / 16)
+                    image[y][x + 1] = clip(image[y][x + 1] + error * 7 / 16)
                 if x - 1 >= 0 and y + 1 < height:
-                    image[y+1][x-1] = clip(image[y+1][x-1] + error * 3 / 16)
+                    image[y + 1][x - 1] = clip(image[y + 1][x - 1] + error * 3 / 16)
                 if y + 1 < height:
-                    image[y+1][x] = clip(image[y+1][x] + error * 5 / 16)
+                    image[y + 1][x] = clip(image[y + 1][x] + error * 5 / 16)
                 if x + 1 < width and y + 1 < height:
-                    image[y+1][x+1] = clip(image[y+1][x+1] + error * 1 / 16)
+                    image[y + 1][x + 1] = clip(image[y + 1][x + 1] + error * 1 / 16)
 
-    # Convert to Pillow image
-    pil_img = Image.new("L", size)
-    flat_pixels = [p for row in image for p in row]
-    pil_img.putdata(flat_pixels)
+    # Flatten image
+    flat_pixels = []
+    for row in image:
+        for pixel in row:
+            quantized = pixel * max_val // 255
+            flat_pixels.append(quantized)
 
-    # Compress as JPG to BytesIO
-    jpg_buffer = io.BytesIO()
-    pil_img.save(jpg_buffer, format='JPEG', quality=15)  # High compression
-    jpg_bytes = jpg_buffer.getvalue()
+    # Pack into bytes
+    packed_bytes = bytearray()
+    buffer = 0
+    bits_filled = 0
 
-    # Compress using zlib
-    compressed = zlib.compress(jpg_bytes)
+    for val in flat_pixels:
+        buffer = (buffer << bit_depth) | val
+        bits_filled += bit_depth
+
+        while bits_filled >= 8:
+            bits_filled -= 8
+            packed_bytes.append((buffer >> bits_filled) & 0xFF)
+
+    if bits_filled > 0:
+        buffer = buffer << (8 - bits_filled)
+        packed_bytes.append(buffer & 0xFF)
+
+    compressed = zlib.compress(packed_bytes)
     hex_output = compressed.hex()
 
     print(f"Image converted successfully. Total hex length: {len(hex_output)}")
-    # sizer(len(compressed))
 
     return hex_output
-
-# def sizer(len_data):
-#     packets = len_data / 128
-#     print(f"Estimated packets to send: {math.ceil(packets)}")
