@@ -226,7 +226,7 @@ class ScreenshotCommand(Command):
             image_path = os.path.join(script_dir, "img", args[0])
             
             # Load, dither, and pack image bits (returns a bytearray)
-            hex_data = convert_image(image_path, bit_depth=bit_depth, size=size)
+            hex_data = convert_image(image_path, bit_depth=bit_depth, size=size, dithering=False)
             if not hex_data:
                 handler.send_response("Image conversion failed", handler.rfm9x)
                 return
