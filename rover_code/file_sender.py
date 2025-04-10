@@ -10,6 +10,12 @@ def send_file(hex_data, handler):
     
     print(f"Total packets to send: {len(packet_list)}")
 
+    # set delay before sending ACK
+    handler.rfm9x.ack_delay = 0.1
+    # set node addresses
+    handler.rfm9x.node = 1
+    handler.rfm9x.destination = 2
+
     for packet in packet_list:
         print(packet.encode('ascii'))
         handler.rfm9x.send_with_ack(packet.encode('ascii'))
