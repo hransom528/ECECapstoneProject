@@ -21,7 +21,7 @@ print("LoRa transceiver is initialized. Ready to receive commands!")
 
 # --- Main Loop ---
 while True:
-    packet = rfm9x.receive(timeout=RECEIVE_TIMEOUT)
+    packet = rfm9x.receive(timeout=RECEIVE_TIMEOUT, with_ack=True)
     if packet:
         try:
             message = packet.decode("utf-8").strip()
