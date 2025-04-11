@@ -250,6 +250,16 @@ class CameraCommand(Command):
     
     def execute(self, args, handler):
         try:
+            
+            import time
+
+            while True:
+                image_path = capture_photo()
+                if image_path:
+                    break  
+                print("Retrying capture...")
+                time.sleep(1)  
+
             image_path = capture_photo()
             
             # Set image parameters – adjust as needed.
