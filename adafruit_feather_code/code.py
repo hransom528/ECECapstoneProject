@@ -13,7 +13,7 @@ MAX_RETRIES = 0
 def handle_command(rfm9x, command):
     message = command.encode('utf-8')
     print(f"[TX] Sending ({len(message)} bytes): {command}")
-    rfm9x.send(message)
+    rfm9x.send_with_ack(message)
 
     print(f"[RX] Waiting for response... (timeout resets occasionally, max idle: {RECEIVE_TIMEOUT}s)")
 
@@ -23,7 +23,7 @@ def handle_command(rfm9x, command):
     received_any = False
 
     while True:
-        packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT)
+        packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT, with_ack=True)
         current_time = time.time()
 
         if packet:
