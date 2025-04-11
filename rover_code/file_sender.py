@@ -19,7 +19,7 @@ def send_file(hex_data, handler):
     for packet in packet_list:
         print(packet.encode('ascii'))
         handler.rfm9x.send_with_ack(packet.encode('ascii'))
-        time.sleep(1)
+        time.sleep(0.1)
 
     return True
 

@@ -12,7 +12,7 @@ The purpose of this module is to communicate with the basestation. This is what 
 
 # --- Configuration Parameters ---
 RECEIVE_TIMEOUT = 2.0   # Timeout (seconds) for rfm9x.receive() to wait for a packet
-LOOP_SLEEP = 0.001        # Sleep duration (seconds) in main loop to yield CPU control
+LOOP_SLEEP = 0.1        # Sleep duration (seconds) in main loop to yield CPU control
 
 rfm9x = get_lora_radio()
 handler = CommandHandler(rfm9x)
