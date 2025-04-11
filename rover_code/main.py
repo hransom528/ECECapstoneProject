@@ -26,6 +26,7 @@ while True:
         try:
             message = packet.decode("utf-8").strip()
             print(f"[RECEIVED] {message}")
+            print(message)
             if not message:
                 continue
 
