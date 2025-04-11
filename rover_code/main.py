@@ -21,14 +21,7 @@ print("LoRa transceiver is initialized. Ready to receive commands!")
 
 # --- Main Loop ---
 while True:
-    # set delay before sending ACK
-    handler.rfm9x.ack_delay = 0.1
-    # set node addresses
-    handler.rfm9x.node = 1
-    handler.rfm9x.destination = 2
-
     packet = rfm9x.receive(timeout=RECEIVE_TIMEOUT, with_ack=True)
-    
     if packet:
         try:
             message = packet.decode("utf-8").strip()
