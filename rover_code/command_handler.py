@@ -333,6 +333,7 @@ class CommandHandler:
             EchoCommand(),
             ConfigCommand(),
             ScreenshotCommand(),
+            CameraCommand(),
             ResendCommand(),  # New RESEND command added here.
         ])
 
