@@ -1,4 +1,6 @@
 import os
+import subprocess
+from subprocess import STDOUT, check_output
 import time
 from datetime import datetime
 from network_tests import ping_host, check_dns, check_internet_connectivity
@@ -85,8 +87,12 @@ class ScanCommand(Command):
 
     def execute(self, args, handler):
         response = "→ Scanning environment..."
+        #scanCmd = "sudo timeout 20s airodump-ng wlan0mon"
+        #result = subprocess.getoutput(scanCmd)
+        #scanCmd = ["sudo", "timeout", "20s", "airodump-ng", "wlan0mon"]
+        #result = check_output(scanCmd, stderr=STDOUT)
         handler.send_response(response)
-
+        #handler.send_reponse(result)
 
 class StopCommand(Command):
     name = "STOP"
@@ -320,6 +326,27 @@ class ResendCommand(Command):
         except Exception as e:
             handler.send_response(f"[RESEND ERROR] {e}", handler.rfm9x)
 
+class ScanBluetoothCommand(Command):
+    name = "SCANBT"
+
+    def execute(self, args, handler):
+        response = "→ Scanning Bluetooth devices..."
+        scanCmd = ["hcitool"], "scan"
+        result = check_output(scanCmd, stderr=STDOUT)
+        handler.send_response(response)
+        handler.send_reponse(result)
+
+class WifiSetupCommand(Command):
+    name = "WIFISETUP"
+
+    def execute(self, args, handler):
+        response = "→ WiFi Set Up Successfully!"
+        checkKillCmd = ["sudo", "airmon-ng", "check", "kill"]
+        subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan0"]
+        subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        handler.send_response(response)
+
 class CommandHandler:
     def __init__(self, rfm9x):
         self.rfm9x = rfm9x
@@ -345,6 +372,8 @@ class CommandHandler:
             ScreenshotCommand(),
             CameraCommand(),
             ResendCommand(),  # New RESEND command added here.
+            ScanBluetoothCommand(),
+            WifiSetupCommand(),
         ])
 
 
