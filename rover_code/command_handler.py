@@ -161,20 +161,22 @@ class EchoCommand(Command):
     def execute(self, args, handler):
         try:
             if len(args) == 0:
-                # We treat this as a single response so that the termination token is sent.
-                return handler.send_response("Usage: ECHO (# of packets) (message)", handler.rfm9x)
+                handler.send_response("Usage: ECHO (# of packets) (message)", handler.rfm9x)
+                # Send termination token right away.
+                handler.send_final_token()
+                return
+
             times = int(args[0])
             message = args[1] if len(args) > 1 else ""
+            # Send each echo packet.
             for i in range(times):
-                # For all but the final packet, disable the termination token.
-                if i < times - 1:
-                    handler.send_response(message, final=False)
-                else:
-                    handler.send_response(message, final=True)
+                handler.send_response(message, handler.rfm9x)
                 time.sleep(0.1)
+            # After all packets are sent, signal the end.
+            handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
-
+            handler.send_final_token()
 
 
 class ConfigCommand(Command):
@@ -387,54 +389,52 @@ class CommandHandler:
         for command in command_list:
             self.commands[command.name] = command
 
-    def send_response(self, response, rfm9x=None, final=True):
+<<<<<<< HEAD
+    def send_response(self, response, rfm9x=None):
+=======
+    def send_response(self, response, rfm9x=None, final=False):
+>>>>>>> 56933650165f4fe0048c0599c17c13efcf67fe2d
         rfm9x = rfm9x or self.rfm9x
         encoded_response = response.encode('utf-8')
 
-        # Determine if we’re prefixing at all
+        # Determine whether to reserve space for a prefix.
         prefix_len = 0
         if self.logging_enabled and self.timestamp_enabled:
             prefix_len = 30
 
         max_data_len = self.max_packet_size - prefix_len
 
-        # Determine chunking behavior
+        # Chunk the response if necessary.
         if self.chunking_enabled:
             chunks = [
                 encoded_response[i:i + max_data_len]
                 for i in range(0, len(encoded_response), max_data_len)
             ]
         else:
-            chunks = [encoded_response]  # No chunking
+            chunks = [encoded_response]
 
         total = len(chunks)
 
         for idx, chunk in enumerate(chunks, start=1):
             if self.logging_enabled:
                 if self.timestamp_enabled:
+                    from datetime import datetime
                     timestamp = datetime.now().strftime("%H:%M:%S")
                     prefix = f"[{timestamp} {idx}/{total}] "
                 else:
                     prefix = f"[{idx}/{total}] "
                 payload = prefix.encode('utf-8') + chunk
             else:
-                payload = chunk  # No prefix at all
+                payload = chunk
 
-            print(payload)
+            print("[DEBUG] Sending payload:", payload)
             rfm9x.send_with_ack(payload)
             self.packet_history.append(payload)
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
-        
-        # Only send the final termination token if this is the final response for this command
-        if final:
-            FINAL_TOKEN = "END_OF_STREAM"  # Unique marker.
-            final_packet = FINAL_TOKEN.encode('utf-8')
-            print(final_packet)
-            rfm9x.send_with_ack(final_packet)
-            self.packet_history.append(final_packet)
-            if len(self.packet_history) > MAX_HISTORY:
-                self.packet_history.pop(0)
+
+
+
 
     def handle_command(self, command, args):
         try:
@@ -445,3 +445,13 @@ class CommandHandler:
                 self.send_response(f"[UNIMPLEMENTED COMMAND] {cmd}")
         except Exception as e:
             self.send_response(f"[ERROR] Command handling failed: {e}")
+
+    def send_final_token(self, rfm9x=None):
+        rfm9x = rfm9x or self.rfm9x
+        FINAL_TOKEN = "END_OF_STREAM"  # Make sure this token does not appear in regular messages.
+        final_packet = FINAL_TOKEN.encode('utf-8')
+        print("[DEBUG] Sending final token:", final_packet)
+        rfm9x.send_with_ack(final_packet)
+        self.packet_history.append(final_packet)
+        if len(self.packet_history) > MAX_HISTORY:
+            self.packet_history.pop(0)
