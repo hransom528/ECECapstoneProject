@@ -381,7 +381,7 @@ class CommandHandler:
         for command in command_list:
             self.commands[command.name] = command
 
-    def send_response(self, response, rfm9x=None):
+    def send_response(self, response, rfm9x=None, final=True):
         rfm9x = rfm9x or self.rfm9x
         encoded_response = response.encode('utf-8')
 
@@ -420,14 +420,15 @@ class CommandHandler:
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
         
-        # Send final termination token
-        FINAL_TOKEN = "END_OF_STREAM"  # Ensure this token is unique and not part of normal responses.
-        final_packet = FINAL_TOKEN.encode('utf-8')
-        print(final_packet)
-        rfm9x.send_with_ack(final_packet)
-        self.packet_history.append(final_packet)
-        if len(self.packet_history) > MAX_HISTORY:
-            self.packet_history.pop(0)
+        # Only send the final termination token if this is the final response for this command
+        if final:
+            FINAL_TOKEN = "END_OF_STREAM"  # Unique marker.
+            final_packet = FINAL_TOKEN.encode('utf-8')
+            print(final_packet)
+            rfm9x.send_with_ack(final_packet)
+            self.packet_history.append(final_packet)
+            if len(self.packet_history) > MAX_HISTORY:
+                self.packet_history.pop(0)
 
     def handle_command(self, command, args):
         try:
