@@ -73,6 +73,7 @@ class LedCommand(Command):
         state = args[0].upper() if len(args) > 0 else "OFF"
         response = f"→ Turning LED {state}"
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class StatusCommand(Command):
@@ -81,6 +82,7 @@ class StatusCommand(Command):
     def execute(self, args, handler):
         response = "→ Rover is online and ready"
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class ScanCommand(Command):
@@ -94,6 +96,7 @@ class ScanCommand(Command):
         #result = check_output(scanCmd, stderr=STDOUT)
         handler.send_response(response)
         #handler.send_reponse(result)
+        handler.send_final_token()
 
 class StopCommand(Command):
     name = "STOP"
@@ -101,6 +104,7 @@ class StopCommand(Command):
     def execute(self, args, handler):
         response = "→ Stopping all activity"
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class PingCommand(Command):
@@ -110,6 +114,7 @@ class PingCommand(Command):
         target = args[0] if len(args) > 0 else "8.8.8.8"
         response = ping_host(host=target)
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class DnsCommand(Command):
@@ -119,6 +124,7 @@ class DnsCommand(Command):
         domain = args[0] if len(args) > 0 else "google.com"
         response = check_dns(domain=domain)
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class NetCommand(Command):
@@ -127,6 +133,7 @@ class NetCommand(Command):
     def execute(self, args, handler):
         response = check_internet_connectivity()
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class HelpCommand(Command):
@@ -137,6 +144,7 @@ class HelpCommand(Command):
         available = ", ".join(handler.commands.keys())
         response = f"Valid commands: {available}"
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class HistoryCommand(Command):
@@ -152,8 +160,10 @@ class HistoryCommand(Command):
             handler.send_response(f"→ Resending last {len(to_resend)} packets", handler.rfm9x)
             for packet in to_resend:
                 handler.rfm9x.send(packet)
+            handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
+            handler.send_final_token()
 
 
 class EchoCommand(Command):
@@ -226,6 +236,7 @@ class ConfigCommand(Command):
             response = f"CONFIG error: {e}"
 
         handler.send_response(response)
+        handler.send_final_token()
 
 
 class ScreenshotCommand(Command):
@@ -344,6 +355,7 @@ class ScanBluetoothCommand(Command):
         result = check_output(scanCmd, stderr=STDOUT)
         handler.send_response(response)
         handler.send_reponse(result)
+        handler.send_final_token()
 
 class WifiSetupCommand(Command):
     name = "WIFISETUP"
@@ -355,6 +367,7 @@ class WifiSetupCommand(Command):
         monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan0"]
         subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         handler.send_response(response)
+        handler.send_final_token()
 
 class CommandHandler:
     def __init__(self, rfm9x):
