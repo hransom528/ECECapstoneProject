@@ -161,14 +161,20 @@ class EchoCommand(Command):
     def execute(self, args, handler):
         try:
             if len(args) == 0:
+                # We treat this as a single response so that the termination token is sent.
                 return handler.send_response("Usage: ECHO (# of packets) (message)", handler.rfm9x)
             times = int(args[0])
             message = args[1] if len(args) > 1 else ""
-            for _ in range(times):
-                handler.send_response(message)
+            for i in range(times):
+                # For all but the final packet, disable the termination token.
+                if i < times - 1:
+                    handler.send_response(message, final=False)
+                else:
+                    handler.send_response(message, final=True)
                 time.sleep(0.1)
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
+
 
 
 class ConfigCommand(Command):
