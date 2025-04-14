@@ -388,9 +388,17 @@ class CommandHandler:
             print(payload)
             rfm9x.send_with_ack(payload)
             self.packet_history.append(payload)
-
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
+        
+        # Send final termination token
+        FINAL_TOKEN = "END_OF_STREAM"  # Ensure this token is unique and not part of normal responses.
+        final_packet = FINAL_TOKEN.encode('utf-8')
+        print(final_packet)
+        rfm9x.send_with_ack(final_packet)
+        self.packet_history.append(final_packet)
+        if len(self.packet_history) > MAX_HISTORY:
+            self.packet_history.pop(0)
 
     def handle_command(self, command, args):
         try:
