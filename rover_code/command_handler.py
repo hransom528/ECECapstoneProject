@@ -63,6 +63,7 @@ class MoveCommand(Command):
         if direction.upper() in ["FORWARD", "BACKWARD", "LEFT", "RIGHT"]:
             time.sleep(duration)
             stop()
+        handler.send_final_token()
 
 
 class LedCommand(Command):
@@ -415,7 +416,6 @@ class CommandHandler:
         for idx, chunk in enumerate(chunks, start=1):
             if self.logging_enabled:
                 if self.timestamp_enabled:
-                    from datetime import datetime
                     timestamp = datetime.now().strftime("%H:%M:%S")
                     prefix = f"[{timestamp} {idx}/{total}] "
                 else:
