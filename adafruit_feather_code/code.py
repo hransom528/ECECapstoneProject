@@ -11,16 +11,15 @@ LOOP_SLEEP = 0.01
 MAX_RETRIES = 0
 
 def handle_command(rfm9x, command):
+    FINAL_TOKEN = "END_OF_STREAM"  # Unique marker to denote end of transmission.
+
     message = command.encode('utf-8')
     print(f"[TX] Sending ({len(message)} bytes): {command}")
     rfm9x.send_with_ack(message)
 
-    print(f"[RX] Waiting for response... (timeout resets occasionally, max idle: {RECEIVE_TIMEOUT}s)")
+    print(f"[RX] Waiting for response... (waiting for final packet signal '{FINAL_TOKEN}')")
 
-    start_time = time.time()  # Initial timeout start
-    last_reset_time = start_time  # Last time we reset timeout
-    packet_count_since_reset = 0
-    received_any = False
+    start_time = time.time()
 
     while True:
         packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT, with_ack=True)
@@ -29,25 +28,19 @@ def handle_command(rfm9x, command):
         if packet:
             try:
                 decoded = packet.decode('utf-8').strip()
+                # Check for the final packet marker.
+                if decoded == FINAL_TOKEN:
+                    print("[RX] Final packet received. End of message stream.")
+                    break
                 print(f"[RECEIVED] [{len(packet)} bytes]: {decoded}")
-                received_any = True
-                packet_count_since_reset += 1
-
-                # Reset timeout if:
-                # - 10 packets received
-                # - OR it's been >1s since last reset
-                if packet_count_since_reset >= 10 or (current_time - last_reset_time) >= 1.0:
-                    start_time = current_time
-                    last_reset_time = current_time
-                    packet_count_since_reset = 0
-
             except UnicodeDecodeError:
                 print("[ERROR] Received invalid UTF-8 data")
-
         else:
+            # Fallback timeout: in case we never receive the final token.
             if current_time - start_time > RECEIVE_TIMEOUT:
                 print(f"[RX] Timeout: No packets received for {RECEIVE_TIMEOUT} seconds.")
                 break
+
 
 
 def main():
