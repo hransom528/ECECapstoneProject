@@ -389,15 +389,8 @@ class CommandHandler:
         for command in command_list:
             self.commands[command.name] = command
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
     def send_response(self, response, rfm9x=None):
-=======
-    def send_response(self, response, rfm9x=None, final=False):
->>>>>>> 56933650165f4fe0048c0599c17c13efcf67fe2d
-=======
-    def send_response(self, response, rfm9x=None, final=False):
->>>>>>> 56933650165f4fe0048c0599c17c13efcf67fe2d
         rfm9x = rfm9x or self.rfm9x
         encoded_response = response.encode('utf-8')
 
