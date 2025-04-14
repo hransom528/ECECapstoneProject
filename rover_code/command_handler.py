@@ -114,6 +114,7 @@ class PingCommand(Command):
         target = args[0] if len(args) > 0 else "8.8.8.8"
         response = ping_host(host=target)
         handler.send_response(response)
+        time.sleep(0.2)
         handler.send_final_token()
 
 
