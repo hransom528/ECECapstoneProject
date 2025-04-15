@@ -266,11 +266,14 @@ class ScreenshotCommand(Command):
             # # Send the file using file_sender's send_file function
             if send_file(hex_data, handler):
                 handler.send_response("SCREENSHOT SENT", handler.rfm9x)
+                handler.send_final_token()
             else:
                 handler.send_response("Failed to send screenshot", handler.rfm9x)
+                handler.send_final_token()
                 
         except Exception as e:
             handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
+            handler.send_final_token()
 
 class CameraCommand(Command):
     name = "CAMERA"
