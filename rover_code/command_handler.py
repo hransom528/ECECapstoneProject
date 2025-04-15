@@ -379,7 +379,7 @@ class CommandHandler:
         self.packet_history = []
         self.max_packet_size = 128
         self.logging_enabled = True
-        self.timestamp_enabled = True
+        self.timestamp_enabled = False
         self.chunking_enabled = True
         self.commands = {}
         self.register_commands([
