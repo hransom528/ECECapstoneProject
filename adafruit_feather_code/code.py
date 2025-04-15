@@ -11,36 +11,38 @@ LOOP_SLEEP = 0.01
 MAX_RETRIES = 0
 
 def handle_command(rfm9x, command):
-    FINAL_TOKEN = "END_OF_STREAM"  # Unique marker to denote end of transmission.
-
+    FINAL_TOKEN = "END_OF_STREAM"
     message = command.encode('utf-8')
+
     print(f"[TX] Sending ({len(message)} bytes): {command}")
     rfm9x.send_with_ack(message)
 
     print(f"[RX] Waiting for response... (waiting for final packet signal '{FINAL_TOKEN}')")
 
     start_time = time.time()
+    last_packet_time = start_time
 
     while True:
         packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT, with_ack=True)
         current_time = time.time()
 
         if packet:
+            last_packet_time = current_time  # Reset the timeout window on every packet
+
             try:
                 decoded = packet.decode('utf-8').strip()
-                # Check for the final packet marker.
                 if decoded == FINAL_TOKEN:
                     print("[RX] Final packet received. End of message stream.")
                     break
                 print(f"[RECEIVED] [{len(packet)} bytes]: {decoded}")
             except UnicodeDecodeError:
                 print("[ERROR] Received invalid UTF-8 data")
+
         else:
-            # Fallback timeout: in case we never receive the final token.
-            if current_time - start_time > RECEIVE_TIMEOUT:
+            # No packet arrived within INTER_PACKET_TIMEOUT
+            if current_time - last_packet_time > RECEIVE_TIMEOUT:
                 print(f"[RX] Timeout: No packets received for {RECEIVE_TIMEOUT} seconds.")
                 break
-
 
 
 def main():
