@@ -1,4 +1,4 @@
-from serial_interface import SerialInterface
+from serial_utils.serial_interface import SerialInterface
 
 def main():
     print("Basestation online. Starting serial interface...")
