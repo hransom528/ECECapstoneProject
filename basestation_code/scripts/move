@@ -1,0 +1,9 @@
+# This script is a movement demonstration. 
+MOVE FORWARD 0.1 1
+WAIT 2 # Wait two seconds. 
+MOVE BACKWARD 0.1 1
+WAIT 2
+MOVE FORWARD 0.1 1
+MOVE BACKWARD 0.1 1
+MOVE RIGHT 0.1 1
+MOVE LEFT 0.1 1
