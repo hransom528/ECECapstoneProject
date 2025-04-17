@@ -48,6 +48,9 @@ def handle_command(rfm9x, command):
 def main():
     print("Basestation online. Type commands to send to the rover. Type 'exit' to quit.")
     rfm9x = get_lora_radio()
+    rfm9x.ack_delay = 0.01
+    rfm9x.node = 2
+    rfm9x.destination = 1
 
     while True:
         try:
