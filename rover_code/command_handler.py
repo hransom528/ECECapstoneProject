@@ -219,9 +219,7 @@ class EchoCommand(Command):
             throughput = total_bytes_sent / elapsed_time if elapsed_time > 0 else 0
             latency_per_packet = elapsed_time / times if times > 0 else 0
 
-            handler.send_response(f"[THROUGHPUT] {throughput:.2f} bytes/sec", handler.rfm9x)
-            handler.send_response(f"[LATENCY] {latency_per_packet:.4f} sec/packet", handler.rfm9x)
-
+            handler.send_response(f"[THROUGHPUT] {throughput:.2f} bytes/sec | [LATENCY] {latency_per_packet:.4f} sec/packet", handler.rfm9x)
             handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
