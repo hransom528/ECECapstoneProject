@@ -220,9 +220,11 @@ class EchoCommand(Command):
             latency_per_packet = elapsed_time / times if times > 0 else 0
 
             handler.send_response(f"[THROUGHPUT] {throughput:.2f} bytes/sec | [LATENCY] {latency_per_packet:.4f} sec/packet", handler.rfm9x)
+            time.sleep(0.1)
             handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
+            time.sleep(0.1)
             handler.send_final_token()
 
 
