@@ -21,12 +21,14 @@ def handle_command(rfm9x, command):
 
     start_time = time.time()
     last_packet_time = start_time
+    packet_count = 0
 
     while True:
         packet = rfm9x.receive(timeout=INTER_PACKET_TIMEOUT, with_ack=True)
         current_time = time.time()
 
         if packet:
+            packet_count += 1
             last_packet_time = current_time  # Reset the timeout window on every packet
 
             try:
@@ -34,9 +36,9 @@ def handle_command(rfm9x, command):
                 if decoded == FINAL_TOKEN:
                     print("[RX] Final packet received. End of message stream.")
                     break
-                print(f"[RECEIVED] [{len(packet)} bytes]: {decoded}")
+                print(f"[RECEIVED #{packet_count}] [{len(packet)} bytes]: {decoded}")
             except UnicodeDecodeError:
-                print("[ERROR] Received invalid UTF-8 data")
+                print(f"[ERROR] Received invalid UTF-8 data (packet #{packet_count})")
 
         else:
             # No packet arrived within INTER_PACKET_TIMEOUT
@@ -44,6 +46,7 @@ def handle_command(rfm9x, command):
                 print(f"[RX] Timeout: No packets received for {RECEIVE_TIMEOUT} seconds.")
                 break
 
+    print(f"[RX] Total packets received (excluding final token): {packet_count}")
 
 def main():
     print("Basestation online. Type commands to send to the rover. Type 'exit' to quit.")
