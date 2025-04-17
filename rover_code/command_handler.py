@@ -211,6 +211,7 @@ class EchoCommand(Command):
                 bytes_sent = handler.send_response(message, handler.rfm9x)
                 total_bytes_sent += bytes_sent
                 time.sleep(0.1)  # simulate delay between packets
+                # test
 
             end_time = time.time()
             elapsed_time = end_time - start_time
