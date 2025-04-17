@@ -10,6 +10,9 @@ This code is not what the rover should be running!!
 class FakeLoRa:
     def send(self, data):
         print(f"[SENT] [{len(data)} bytes]: {data.decode('utf-8')}")
+        
+    def send_with_ack(self, data):
+        print(f"[SENT] [{len(data)} bytes]: {data.decode('utf-8')}")
 
 
 def main():
