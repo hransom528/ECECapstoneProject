@@ -175,7 +175,7 @@ class EchoCommand(Command):
             if len(args) == 0:
                 handler.send_response("Usage: ECHO (# of packets) (message)", handler.rfm9x)
                 # Send termination token right away.
-                # handler.send_final_token()
+                handler.send_final_token()
                 return
 
             times = int(args[0])
@@ -185,10 +185,10 @@ class EchoCommand(Command):
                 handler.send_response(message, handler.rfm9x)
                 time.sleep(0.1)
             # After all packets are sent, signal the end.
-            # handler.send_final_token()
+            handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
-            # handler.send_final_token()
+            handler.send_final_token()
 
 
 class ConfigCommand(Command):
@@ -443,7 +443,7 @@ class CommandHandler:
 
             print("[DEBUG] Sending payload:", payload)
             rfm9x.send_with_ack(payload)
-            self.send_final_token()
+            #self.send_final_token()
             self.packet_history.append(payload)
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
