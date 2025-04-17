@@ -1,21 +1,36 @@
 import os
+import cv2
+import time
 
-def capture_photo(save_directory="img", filename="photo.jpg"):
+def capture_photo(save_directory="img", filename="photo.png"):
+    # Create the directory if it does not exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
+    # Full path to the photo
     photo_path = os.path.join(save_directory, filename)
 
-    cmd = f"fswebcam --no-banner -r 640x480 {photo_path}"
-    result = os.system(cmd)
+    # Initialize the camera (0 is usually the default camera on your system)
+    cap = cv2.VideoCapture(1)
 
-    if result == 0:
+    if not cap.isOpened():
+        print("Error: Camera not found.")
+        return None
+
+    time.sleep(0.2)
+    # Capture a frame
+    ret, frame = cap.read()
+
+    if ret:
+        # Save the captured frame to the specified file
+        cv2.imwrite(photo_path, frame)
         print(f"Photo captured and saved to {photo_path}")
+        cap.release()
         return photo_path
     else:
         print("Error: Failed to capture image.")
+        cap.release()
         return None
-
 def _manage_photo_count(directory, max_photos=3):
     """
     Ensures the number of photos in the directory does not exceed the specified max_photos.
