@@ -16,6 +16,7 @@ def get_lora_radio():
     
     # Create and configure the LoRa radio object
     rfm9x = adafruit_rfm9x.RFM9x(spi, chip_select, reset, RADIO_FREQ_MHZ, baudrate=BAUD_RATE)
-    rfm9x.tx_power = 13
+    #rfm9x.tx_power = 13
+    rfm9x.tx_power = 20
     print("LoRa transceiver is initialized.")
     return rfm9x
