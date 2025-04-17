@@ -418,7 +418,7 @@ class CommandHandler:
         self.rfm9x.destination = 2
         self.packet_history = []
         self.max_packet_size = 224
-        self.logging_enabled = True
+        self.logging_enabled = False
         self.timestamp_enabled = False
         self.chunking_enabled = True
         self.commands = {}
