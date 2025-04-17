@@ -208,8 +208,8 @@ class EchoCommand(Command):
             start_time = time.time()
 
             for i in range(times):
-                handler.send_response(message, handler.rfm9x)
-                total_bytes_sent += len(message.encode('utf-8'))
+                bytes_sent = handler.send_response(message, handler.rfm9x)
+                total_bytes_sent += bytes_sent
                 time.sleep(0.1)  # simulate delay between packets
 
             end_time = time.time()
@@ -449,17 +449,19 @@ class CommandHandler:
 
 
     def send_response(self, response, rfm9x=None):
+        from datetime import datetime  # just in case it's not at the top
+
         rfm9x = rfm9x or self.rfm9x
         encoded_response = response.encode('utf-8')
 
-        # Determine whether to reserve space for a prefix.
+        # Determine prefix length for timestamp/logging
         prefix_len = 0
         if self.logging_enabled and self.timestamp_enabled:
             prefix_len = 30
 
         max_data_len = self.max_packet_size - prefix_len
 
-        # Chunk the response if necessary.
+        # Chunk the response
         if self.chunking_enabled:
             chunks = [
                 encoded_response[i:i + max_data_len]
@@ -469,6 +471,7 @@ class CommandHandler:
             chunks = [encoded_response]
 
         total = len(chunks)
+        total_bytes_sent = 0  # <--- Track actual bytes sent
 
         for idx, chunk in enumerate(chunks, start=1):
             if self.logging_enabled:
@@ -484,9 +487,13 @@ class CommandHandler:
             print("[DEBUG] Sending payload:", payload)
             rfm9x.send_with_ack(payload)
             self.packet_history.append(payload)
+
+            total_bytes_sent += len(payload)  # <--- Add actual payload length
+
             if len(self.packet_history) > MAX_HISTORY:
                 self.packet_history.pop(0)
 
+        return total_bytes_sent  # <--- Return byte count
 
 
 
