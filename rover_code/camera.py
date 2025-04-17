@@ -1,5 +1,10 @@
 import os
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+    print("Warning: OpenCV (cv2) is not installed. Some features may not work.")
+
 import time
 
 def capture_photo(save_directory="img", filename="photo.png"):
