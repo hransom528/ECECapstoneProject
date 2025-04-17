@@ -413,7 +413,7 @@ class WifiSetupCommand(Command):
 class CommandHandler:
     def __init__(self, rfm9x):
         self.rfm9x = rfm9x
-        self.rfm9x.ack_delay = 0.05
+        self.rfm9x.ack_delay = 0.01
         self.rfm9x.node = 1
         self.rfm9x.destination = 2
         self.packet_history = []
