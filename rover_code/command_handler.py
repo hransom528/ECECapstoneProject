@@ -166,7 +166,7 @@ class HistoryCommand(Command):
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
             handler.send_final_token()
 
-
+'''
 class EchoCommand(Command):
     name = "ECHO"
 
@@ -185,6 +185,43 @@ class EchoCommand(Command):
                 handler.send_response(message, handler.rfm9x)
                 time.sleep(0.1)
             # After all packets are sent, signal the end.
+            handler.send_final_token()
+        except Exception as e:
+            handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
+            handler.send_final_token()
+'''
+
+class EchoCommand(Command):
+    name = "ECHO"
+
+    def execute(self, args, handler):
+        try:
+            if len(args) == 0:
+                handler.send_response("Usage: ECHO (# of packets) (message)", handler.rfm9x)
+                handler.send_final_token()
+                return
+
+            times = int(args[0])
+            message = args[1] if len(args) > 1 else ""
+
+            total_bytes_sent = 0
+            start_time = time.time()
+
+            for i in range(times):
+                handler.send_response(message, handler.rfm9x)
+                total_bytes_sent += len(message.encode('utf-8'))
+                time.sleep(0.1)  # simulate delay between packets
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            # Calculate throughput (bytes per second)
+            throughput = total_bytes_sent / elapsed_time if elapsed_time > 0 else 0
+            latency_per_packet = elapsed_time / times if times > 0 else 0
+
+            handler.send_response(f"[THROUGHPUT] {throughput:.2f} bytes/sec", handler.rfm9x)
+            handler.send_response(f"[LATENCY] {latency_per_packet:.4f} sec/packet", handler.rfm9x)
+
             handler.send_final_token()
         except Exception as e:
             handler.send_response(f"[REQUEST ERROR] Invalid argument: {e}", handler.rfm9x)
