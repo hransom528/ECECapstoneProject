@@ -277,6 +277,10 @@ class ConfigCommand(Command):
         handler.send_final_token()
 
 
+import os
+
+import os
+
 class ScreenshotCommand(Command):
     name = "SCREENSHOT"
     
@@ -284,9 +288,25 @@ class ScreenshotCommand(Command):
         try:
             # Set image parameters – adjust as needed.
             bit_depth = 4
-            size = (64, 64)
+            size = (128, 128)
             
-            # Determine the image path (assuming the image is stored in a folder "img" next to this file)
+            # Save the original max packet size or default to 128
+            original_max_packet_size = getattr(handler, "max_packet_size", 128)
+            max_packet_size = original_max_packet_size
+
+            # If a second argument is provided, try to use it as the new packet size
+            if len(args) > 1:
+                try:
+                    max_packet_size = int(args[1])
+                except ValueError:
+                    handler.send_response("Invalid packet size. Must be an integer.", handler.rfm9x)
+                    handler.send_final_token()
+                    return
+
+            # Temporarily override handler.max_packet_size
+            handler.max_packet_size = max_packet_size
+
+            # Determine the image path
             script_dir = os.path.dirname(os.path.abspath(__file__))
             image_path = os.path.join(script_dir, "img", args[0])
             
@@ -296,19 +316,25 @@ class ScreenshotCommand(Command):
                 handler.send_response("Image conversion failed", handler.rfm9x)
                 return
             
+            # Optionally write to terminal log
             with open("terminal.txt", "w") as f:
                 f.write(hex_data)
             
-            handler.send_response(f"Sending an {size} {bit_depth}bpp image")
-            # # Send the file using file_sender's send_file function
+            handler.send_response(f"Sending an {size} {bit_depth}bpp image in {max_packet_size}-byte chunks")
+
+            # Send the image data
             if send_file(hex_data, handler):
                 handler.send_response("SCREENSHOT SENT", handler.rfm9x)
-                handler.send_final_token()
             else:
                 handler.send_response("Failed to send screenshot", handler.rfm9x)
-                handler.send_final_token()
+
+            # Restore the original packet size
+            handler.max_packet_size = original_max_packet_size
+            handler.send_final_token()
                 
         except Exception as e:
+            # Restore even if there's an error
+            handler.max_packet_size = original_max_packet_size
             handler.send_response(f"[SCREENSHOT ERROR] {e}", handler.rfm9x)
             handler.send_final_token()
 
