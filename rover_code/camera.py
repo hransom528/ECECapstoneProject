@@ -1,10 +1,5 @@
 import os
-try:
-    import cv2
-except ImportError:
-    cv2 = None
-    print("Warning: OpenCV (cv2) is not installed. Some features may not work.")
-
+import cv2
 import time
 
 def capture_photo(save_directory="img", filename="photo.png"):
@@ -16,13 +11,14 @@ def capture_photo(save_directory="img", filename="photo.png"):
     photo_path = os.path.join(save_directory, filename)
 
     # Initialize the camera (0 is usually the default camera on your system)
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+
 
     if not cap.isOpened():
         print("Error: Camera not found.")
         return None
 
-    time.sleep(0.2)
+    time.sleep(0.1)
     # Capture a frame
     ret, frame = cap.read()
 
