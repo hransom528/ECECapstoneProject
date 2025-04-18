@@ -324,13 +324,15 @@ class ScreenshotCommand(Command):
 
             # Send the image data
             if send_file(hex_data, handler):
-                handler.send_response("SCREENSHOT SENT", handler.rfm9x)
+                # handler.send_response("SCREENSHOT SENT", handler.rfm9x)
+                handler.send_final_token()
             else:
                 handler.send_response("Failed to send screenshot", handler.rfm9x)
+                handler.send_final_token()
 
             # Restore the original packet size
             handler.max_packet_size = original_max_packet_size
-            handler.send_final_token()
+            # handler.send_final_token()
                 
         except Exception as e:
             # Restore even if there's an error
