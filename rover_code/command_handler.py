@@ -471,9 +471,10 @@ class WiFiCrackCommand(Command):
     def execute(self, args, handler):
         aircrackCmd = ["sudo", "aircrack-ng", "-b", "b0:b2:1c:a9:29:ad", "precaptured-handshake.cap", "-w", "/usr/share/wordlists/rockyou.txt"]
         grepCmd = ["grep", "\"KEY FOUND!\""]
+        print("hello!")
         crack_text = subprocess.run(aircrackCmd, check=True, capture_output=True)
-        key_result = subprocess.run(grepCmd, input=crack_text.stdout, capture_output=True, text=True, universal_newlines=True)
-        print(key_result.stdout)
+        print(crack_text.stdout)
+        key_result = subprocess.run(grepCmd, input=crack_text.stdout, capture_output=True, text=True, universal_newlines=True)        
         response = key_result.stdout.decode("utf-8").strip()
         handler.send_response(key_result.stdout)
         handler.send_final_token()
