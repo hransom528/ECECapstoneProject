@@ -437,7 +437,7 @@ class WifiSetupCommand(Command):
         #checkKillCmd = ["sudo", "airmon-ng", "check", "kill"]
         #subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan1"]
-        result = subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
         # TODO: Check result
         
         handler.send_response(result.stdout)
