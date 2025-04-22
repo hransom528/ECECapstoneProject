@@ -417,16 +417,21 @@ class ResendCommand(Command):
         except Exception as e:
             handler.send_response(f"[RESEND ERROR] {e}", handler.rfm9x)
 
+# Bluetooth scanning subprocess
+def bluetoothScanProcess():
+    scanCmd = ["sudo", "hcitool", "scan", "--length", "6"]
+    result = subprocess.run(scanCmd, stderr=STDOUT, universal_newlines=True)
+    return result.stdout
+
 # Bluetooth scanning command
 class ScanBluetoothCommand(Command):
     name = "SCANBT"
 
     def execute(self, args, handler):
         response = "→ Scanning Bluetooth devices..."
-        handler.send_response(response)
-        scanCmd = ["sudo", "hcitool", "scan", "--length", "6"]
-        result = subprocess.run(scanCmd, stderr=STDOUT, universal_newlines=True)
-        handler.send_reponse(result.stdout)
+        handler.send_response(response, handler.rfm9x)
+        result = bluetoothScanProcess()
+        handler.send_reponse(result, handler.rfm9x)
         handler.send_final_token()
 
 class WifiSetupCommand(Command):
