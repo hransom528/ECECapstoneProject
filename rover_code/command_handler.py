@@ -433,12 +433,14 @@ class WifiSetupCommand(Command):
     name = "WIFISETUP"
 
     def execute(self, args, handler):
-        response = "→ WiFi Set Up Successfully!"
+        #response = "→ WiFi Set Up Successfully!"
         #checkKillCmd = ["sudo", "airmon-ng", "check", "kill"]
         #subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan1"]
-        subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        handler.send_response(response)
+        result = subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # TODO: Check result
+        
+        handler.send_response(result.stdout)
         handler.send_final_token()
 
 class WiFiScanCommand(Command):
