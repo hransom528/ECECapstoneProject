@@ -480,7 +480,7 @@ class WiFiCrackCommand(Command):
         for line in crack_lines:
             if 'FOUND!' in line:
                 response = line.strip()
-                ind = line.find("FOUND!")
+                ind = line.find("KEY FOUND!")
                 response = line[ind:]
                 break
         
