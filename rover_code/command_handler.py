@@ -467,6 +467,44 @@ class WiFiScanCommand(Command):
         os.remove('handshk-01.kismet.netxml')
         os.remove('handshk-01.log.csv')
 
+class RunCommand(Command):
+    name = "RUN"
+
+    def execute(self, args, handler):
+        if not args:
+            handler.send_response("Usage: RUN <command> [args...]")
+            handler.send_final_token()
+            return
+
+        try:
+            # Join the args into a full shell command
+            shell_cmd = " ".join(args)
+            handler.send_response(f"→ Executing: {shell_cmd}")
+            
+            # Run the command with timeout and capture output
+            result = subprocess.run(
+                shell_cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                timeout=15  # Optional safety timeout
+            )
+
+            output = result.stdout.strip()
+            if output:
+                for line in output.splitlines():
+                    handler.send_response(line)
+            else:
+                handler.send_response("→ Command executed, but no output.")
+
+        except subprocess.TimeoutExpired:
+            handler.send_response("[ERROR] Command timed out.")
+        except Exception as e:
+            handler.send_response(f"[ERROR] Failed to execute: {e}")
+
+        handler.send_final_token()
+
 
 class CommandHandler:
     def __init__(self, rfm9x):
@@ -495,10 +533,11 @@ class CommandHandler:
             ConfigCommand(),
             ScreenshotCommand(),
             CameraCommand(),
-            ResendCommand(),  # New RESEND command added here.
+            ResendCommand(), 
             ScanBluetoothCommand(),
             WifiSetupCommand(),
             WiFiScanCommand(),
+            RunCommand(),
         ])
 
 
