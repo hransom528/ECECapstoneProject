@@ -10,6 +10,7 @@ from file_sender import send_file
 import math
 import zlib
 from camera import capture_photo
+import csv
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -420,7 +421,7 @@ class ScanBluetoothCommand(Command):
 
     def execute(self, args, handler):
         response = "→ Scanning Bluetooth devices..."
-        scanCmd = ["hcitool"], "scan"
+        scanCmd = ["sudo", "hcitool", "scan"]
         result = check_output(scanCmd, stderr=STDOUT)
         handler.send_response(response)
         handler.send_reponse(result)
@@ -431,11 +432,38 @@ class WifiSetupCommand(Command):
 
     def execute(self, args, handler):
         response = "→ WiFi Set Up Successfully!"
-        checkKillCmd = ["sudo", "airmon-ng", "check", "kill"]
-        subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan0"]
+        #checkKillCmd = ["sudo", "airmon-ng", "check", "kill"]
+        #subprocess.run(checkKillCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        monitorModeCmd = ["sudo", "airmon-ng", "start", "wlan1"]
         subprocess.run(monitorModeCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         handler.send_response(response)
+        handler.send_final_token()
+
+class WiFiScanCommand(Command):
+    name = "WIFISCAN"
+
+    def execute(self, args, handler):
+        # Run scanning command
+        #response = "→ Scanning Wi-Fi devices..."
+        timeoutPeriod = 30 # Timeout process after a specified period (s)
+        airodumpCmd = ["sudo", "airodump-ng", "--essid", "ECE_SP25_53", "--channel", "1", "--write", "handshk", "wlan1mon"]
+        subprocess.run(airodumpCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeoutPeriod)
+        
+        # Open captured CSV file
+        with open('handshk-01.csv', newline='') as csvfile:
+            captured_data = []
+            reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            for row in reader:
+                captured_data.append(', '.join(row))
+        captured_data = "".join(captured_data)
+        bytes_data = captured_data.encode('utf-8')
+        hex_data = bytes_data.hex()
+
+        # Send captured CSV back
+        if (send_file(hex_data, handler)):
+            handler.send_response("WIFI SCAN SENT", handler.rfm9x)
+        else:
+            handler.send_response("Failed to send Wi-Fi scan file", handler.rfm9x)
         handler.send_final_token()
 
 class CommandHandler:
@@ -468,6 +496,7 @@ class CommandHandler:
             ResendCommand(),  # New RESEND command added here.
             ScanBluetoothCommand(),
             WifiSetupCommand(),
+            WiFiScanCommand(),
         ])
 
 

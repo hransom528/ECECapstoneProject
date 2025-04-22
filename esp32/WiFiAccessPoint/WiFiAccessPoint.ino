@@ -21,7 +21,7 @@
 
 // Set these to your desired credentials.
 const char *ssid = "ECE_SP25_53";
-const char *password = "testing123";
+const char *password = "spongebob";
 
 NetworkServer server(80);
 IPAddress server_ip;
