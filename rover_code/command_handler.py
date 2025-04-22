@@ -473,7 +473,7 @@ class WiFiCrackCommand(Command):
         grepCmd = ["grep", "\"KEY FOUND!\""]
         crack_text = subprocess.run(aircrackCmd, check=True, capture_output=True)
         key_result = subprocess.run(grepCmd, input=crack_text.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
-        handler.send_response(key_result.stdout)
+        handler.send_response(str(key_result.stdout))
         handler.send_final_token()
 
 class RunCommand(Command):
