@@ -487,23 +487,25 @@ class RunCommand(Command):
             # Join the args into a full shell command
             shell_cmd = " ".join(args)
             handler.send_response(f"→ Executing: {shell_cmd}")
-            
-            # Run the command with timeout and capture output
-            result = subprocess.run(
+
+            # Use Popen to stream output line-by-line
+            process = subprocess.Popen(
                 shell_cmd,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
-                timeout=15  # Optional safety timeout
+                bufsize=1
             )
 
-            output = result.stdout.strip()
-            if output:
-                for line in output.splitlines():
+            # Read lines from stdout as they come
+            for line in iter(process.stdout.readline, ''):
+                line = line.strip()
+                if line:
                     handler.send_response(line)
-            else:
-                handler.send_response("→ Command executed, but no output.")
+
+            process.stdout.close()
+            process.wait()
 
         except subprocess.TimeoutExpired:
             handler.send_response("[ERROR] Command timed out.")
