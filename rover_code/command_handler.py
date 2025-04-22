@@ -278,11 +278,6 @@ class ConfigCommand(Command):
         handler.send_response(response)
         handler.send_final_token()
 
-
-import os
-
-import os
-
 class ScreenshotCommand(Command):
     name = "SCREENSHOT"
     
@@ -420,7 +415,7 @@ class ResendCommand(Command):
 # Bluetooth scanning subprocess
 def bluetoothScanProcess():
     scanCmd = ["sudo", "hcitool", "scan", "--length", "6"]
-    result = subprocess.run(scanCmd, stderr=STDOUT, universal_newlines=True)
+    result = subprocess.run(scanCmd, stderr=STDOUT, stdout=subprocess.PIPE, text=True, universal_newlines=True)
     return result.stdout
 
 # Bluetooth scanning command
@@ -431,7 +426,7 @@ class ScanBluetoothCommand(Command):
         response = "→ Scanning Bluetooth devices..."
         handler.send_response(response, handler.rfm9x)
         result = bluetoothScanProcess()
-        handler.send_reponse(result, handler.rfm9x)
+        handler.send_response(result, handler.rfm9x)
         handler.send_final_token()
 
 class WifiSetupCommand(Command):
