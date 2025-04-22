@@ -425,8 +425,8 @@ class ScanBluetoothCommand(Command):
         response = "→ Scanning Bluetooth devices..."
         handler.send_response(response)
         scanCmd = ["sudo", "hcitool", "scan", "--length", "6"]
-        result = check_output(scanCmd, stderr=STDOUT)
-        handler.send_reponse(result)
+        result = subprocess.run(scanCmd, stderr=STDOUT, universal_newlines=True)
+        handler.send_reponse(result.stdout)
         handler.send_final_token()
 
 class WifiSetupCommand(Command):
