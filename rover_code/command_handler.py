@@ -494,7 +494,7 @@ class TargetLEDOnCommand(Command):
 
     def execute(self, args, handler):
         # Turn on the target LED
-        r = requests.get("192.168.4.1/H")
+        r = requests.get("http://192.168.4.1/H")
         response = "→ Target LED is ON"
         handler.send_response(response)
         handler.send_final_token()
@@ -504,7 +504,7 @@ class TargetLEDOffCommand(Command):
 
     def execute(self, args, handler):
         # Turn off the target LED
-        r = requests.get("192.168.4.1/L")
+        r = requests.get("http://192.168.4.1/L")
         response = "→ Target LED is OFF"
         handler.send_response(response)
         handler.send_final_token()
@@ -582,8 +582,8 @@ class CommandHandler:
             WiFiSetupCommand(),
             WiFiScanCommand(),
             WiFiCrackCommand(),
-            TargetLEDOnCommand,
-            TargetLEDOffCommand,
+            TargetLEDOnCommand(),
+            TargetLEDOffCommand(),
             RunCommand(),
         ])
 
