@@ -11,6 +11,7 @@ import math
 import zlib
 from camera import capture_photo
 import csv
+import threading
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -416,14 +417,15 @@ class ResendCommand(Command):
         except Exception as e:
             handler.send_response(f"[RESEND ERROR] {e}", handler.rfm9x)
 
+# Bluetooth scanning command
 class ScanBluetoothCommand(Command):
     name = "SCANBT"
 
     def execute(self, args, handler):
         response = "→ Scanning Bluetooth devices..."
-        scanCmd = ["sudo", "hcitool", "scan"]
-        result = check_output(scanCmd, stderr=STDOUT)
         handler.send_response(response)
+        scanCmd = ["sudo", "hcitool", "scan", "--length", "6"]
+        result = check_output(scanCmd, stderr=STDOUT)
         handler.send_reponse(result)
         handler.send_final_token()
 
