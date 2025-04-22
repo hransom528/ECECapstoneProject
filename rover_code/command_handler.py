@@ -451,20 +451,18 @@ class WiFiScanCommand(Command):
         
         # Open captured CSV file
         with open('handshk-01.csv', newline='') as csvfile:
-            captured_data = []
             reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
             for row in reader:
-                captured_data.append(', '.join(row))
-        captured_data = "".join(captured_data)
-        bytes_data = captured_data.encode('utf-8')
-        hex_data = bytes_data.hex()
-
-        # Send captured CSV back
-        if (send_file(hex_data, handler)):
-            handler.send_response("WIFI SCAN SENT", handler.rfm9x)
-        else:
-            handler.send_response("Failed to send Wi-Fi scan file", handler.rfm9x)
+                handler.send_response(f"→ {row}", handler.rfm9x)
         handler.send_final_token()
+
+        # Cleanup scan files afterwards
+        os.remove('handshk-01.cap')
+        os.remove('handshk-01.csv')
+        os.remove('handshk-01.kismet.csv')
+        os.remove('handshk-01.kismet.netxml')
+        os.remove('handshk-01.log.csv')
+
 
 class CommandHandler:
     def __init__(self, rfm9x):
