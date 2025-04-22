@@ -12,6 +12,7 @@ import zlib
 from camera import capture_photo
 import csv
 import threading
+import requests
 
 MAX_HISTORY = 500  # Number of sent packets to retain in memory
 
@@ -488,6 +489,26 @@ class WiFiCrackCommand(Command):
         handler.send_response(response)
         handler.send_final_token()
 
+class TargetLEDOnCommand(Command):
+    name = "LEDON"
+
+    def execute(self, args, handler):
+        # Turn on the target LED
+        r = requests.get("192.168.4.1/H")
+        response = "→ Target LED is ON"
+        handler.send_response(response)
+        handler.send_final_token()
+
+class TargetLEDOffCommand(Command):
+    name = "LEDOFF"
+
+    def execute(self, args, handler):
+        # Turn off the target LED
+        r = requests.get("192.168.4.1/L")
+        response = "→ Target LED is OFF"
+        handler.send_response(response)
+        handler.send_final_token()
+
 class RunCommand(Command):
     name = "RUN"
 
@@ -561,6 +582,8 @@ class CommandHandler:
             WiFiSetupCommand(),
             WiFiScanCommand(),
             WiFiCrackCommand(),
+            TargetLEDOnCommand,
+            TargetLEDOffCommand,
             RunCommand(),
         ])
 
