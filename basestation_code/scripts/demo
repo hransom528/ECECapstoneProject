@@ -1,0 +1,8 @@
+move forward 0.7 3
+wificrack
+wait 2
+ledon
+wait 5
+ledoff
+move backward 0.7 3
+scanbt
