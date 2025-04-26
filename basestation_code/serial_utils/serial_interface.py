@@ -12,7 +12,7 @@ from .file_transfer import reconstruct_image_from_hex
 class SerialInterface:
     FILE_TRANSFER_GAP = 1.0  # seconds
 
-    def __init__(self, port=None, baudrate=115200, timeout=1):
+    def __init__(self, port=None, baudrate=11520, timeout=1):
         self.port = port if port is not None else find_adafruit_port()
         self.baudrate = baudrate
         self.timeout = timeout
