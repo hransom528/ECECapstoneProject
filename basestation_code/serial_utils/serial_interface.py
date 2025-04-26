@@ -90,10 +90,15 @@ class SerialInterface:
 
     def send_command(self, cmd):
         if self.ser and self.ser.is_open:
-            print(f"[SEND] {cmd}")
-            log_to_file(f"[SEND] {cmd}")
-            self.ser.write((cmd + "\r\n").encode('utf-8'))
-            self.ser.flush()
+            try:
+                print(f"[SEND] {cmd}")
+                log_to_file(f"[SEND] {cmd}")
+                self.ser.write((cmd + "\r\n").encode('utf-8'))
+                self.ser.flush()
+            except serial.SerialException as e:
+                print(f"[ERROR] Failed to send command: {e}")
+                log_to_file(f"[ERROR] Failed to send command: {e}")
+                self.close()
         else:
             print("[ERROR] Serial port is not open.")
             log_to_file("[ERROR] Serial port is not open.")
