@@ -34,27 +34,27 @@ class MoveCommand(Command):
         direction = args[0].upper()
         try:
             duration = float(args[1])
-            speed = float(args[2])
             raw_speed = max(1, min(10, float(args[2])))
             speed = 0.5 + (raw_speed - 1) * (0.5 / 9)
         except ValueError:
-            handler.send_response("Invalid duration. Provide a number.")
+            handler.send_response("Invalid duration or throttle. Provide numbers.")
             return            
 
         response = ""
-        if direction.upper() == "FORWARD":
-            move_forward(speed)
+
+        if direction == "FORWARD":
+            move_forward(duration, speed)
             response = f"→ Moving forward for {duration} seconds"
-        elif direction.upper() == "BACKWARD":
-            move_backward(speed)
+        elif direction == "BACKWARD":
+            move_backward(duration, speed)
             response = f"→ Moving backward for {duration} seconds"
-        elif direction.upper() == "LEFT":
-            turn_left(speed)
+        elif direction == "LEFT":
+            turn_left(duration, speed)
             response = f"→ Turning left for {duration} seconds"
-        elif direction.upper() == "RIGHT":
-            turn_right(speed)
+        elif direction == "RIGHT":
+            turn_right(duration, speed)
             response = f"→ Turning right for {duration} seconds"
-        elif direction.upper() == "STOP":
+        elif direction == "STOP":
             stop()
             response = "→ Stopping motors"
         else:
@@ -62,10 +62,6 @@ class MoveCommand(Command):
             response = f"→ Unknown direction: {direction}"
 
         handler.send_response(response)
-
-        if direction.upper() in ["FORWARD", "BACKWARD", "LEFT", "RIGHT"]:
-            time.sleep(duration)
-            stop()
         handler.send_final_token()
 
 
