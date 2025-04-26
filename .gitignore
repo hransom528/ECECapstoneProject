@@ -2,3 +2,6 @@ __pycache__
 myvenv
 .venv
 capstone
+config.log
+config_old.log
+terminal.txt
