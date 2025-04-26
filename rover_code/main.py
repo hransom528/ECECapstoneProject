@@ -40,6 +40,7 @@ while True:
             else:
                 response = f"[IGNORED] Unknown command: {command}"
                 rfm9x.send(bytes(response, "utf-8"))
+                handler.send_final_token()
 
         except Exception as e:
             print(f"[ERROR] Packet processing failed: {e}")
