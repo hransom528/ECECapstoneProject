@@ -6,19 +6,19 @@ class ScriptRunner:
     Runs command scripts located in the specified scripts directory.
     Supports commands, WAIT delays, FOR loops, and ignores comments (#).
     """
-import os
+    import os
 
-def __init__(self, command_handler, scripts_dir=None):
-    if scripts_dir is None:
-        # Get the absolute path to this script's directory
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Navigate to the ECECapstoneProject root if necessary
-        while not os.path.isdir(os.path.join(base_dir, 'scripts')) and base_dir != '/':
-            base_dir = os.path.dirname(base_dir)
-        scripts_dir = os.path.join(base_dir, 'scripts')
-    
-    self.command_handler = command_handler
-    self.scripts_dir = scripts_dir
+    def __init__(self, command_handler, scripts_dir=None):
+        if scripts_dir is None:
+            # Get the absolute path to this script's directory
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            # Navigate to the ECECapstoneProject root if necessary
+            while not os.path.isdir(os.path.join(base_dir, 'scripts')) and base_dir != '/':
+                base_dir = os.path.dirname(base_dir)
+            scripts_dir = os.path.join(base_dir, 'scripts')
+        
+        self.command_handler = command_handler
+        self.scripts_dir = scripts_dir
 
 
     def run_script(self, filename):
