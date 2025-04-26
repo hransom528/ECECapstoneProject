@@ -4,8 +4,8 @@ import os
 
 # --- Configuration ---
 LORA_FREQ = 915.0
-TX_POWER = 23
-RECEIVE_TIMEOUT = 10.0
+TX_POWER = 20
+RECEIVE_TIMEOUT = 15.0
 INTER_PACKET_TIMEOUT = 0.4
 LOOP_SLEEP = 0.01
 MAX_RETRIES = 0
@@ -17,7 +17,7 @@ def handle_command(rfm9x, command):
     print(f"[TX] Sending ({len(message)} bytes): {command}")
     rfm9x.send_with_ack(message)
 
-    print(f"[RX] Waiting for response... (waiting for final packet signal '{FINAL_TOKEN}')")
+#    print(f"[RX] Waiting for response... (waiting for final packet signal '{FINAL_TOKEN}')")
 
     start_time = time.time()
     last_packet_time = start_time
@@ -34,7 +34,7 @@ def handle_command(rfm9x, command):
             try:
                 decoded = packet.decode('utf-8').strip()
                 if decoded == FINAL_TOKEN:
-                    print("[RX] Final packet received. End of message stream.")
+#                     print("[RX] Final packet received. End of message stream.")
                     break
                 print(f"[RECEIVED #{packet_count}] [{len(packet)} bytes]: {decoded}")
             except UnicodeDecodeError:
